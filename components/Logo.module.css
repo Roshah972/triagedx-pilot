@@ -1,0 +1,76 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-primary);
+}
+
+.icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.text {
+  font-weight: 700;
+  color: var(--color-gray-900);
+  letter-spacing: -0.02em;
+  font-family: inherit;
+}
+
+/* Size variants */
+.small .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.small .text {
+  font-size: 1rem;
+}
+
+.medium .icon {
+  width: 32px;
+  height: 32px;
+}
+
+.medium .text {
+  font-size: 1.25rem;
+}
+
+.large .icon {
+  width: 48px;
+  height: 48px;
+}
+
+.large .text {
+  font-size: 1.75rem;
+}
+
+@media (min-width: 768px) {
+  .small .icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .small .text {
+    font-size: 1.125rem;
+  }
+
+  .medium .icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .medium .text {
+    font-size: 1.5rem;
+  }
+
+  .large .icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .large .text {
+    font-size: 2.25rem;
+  }
+}
+

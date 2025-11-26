@@ -1,0 +1,112 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--color-cloud) 0%, var(--color-haze) 100%);
+}
+
+.successContent {
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  background: var(--background);
+  padding: 48px 32px;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(88, 51, 255, 0.1);
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  background: var(--success);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 16px;
+  font-family: var(--font-sans);
+}
+
+.message {
+  font-size: 16px;
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.visitId {
+  font-size: 14px;
+  color: var(--foreground);
+  margin-bottom: 24px;
+  padding: 12px;
+  background: var(--muted);
+  border-radius: 8px;
+}
+
+.nextSteps {
+  font-size: 15px;
+  color: var(--foreground);
+  font-weight: 500;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.button {
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  transition: all 0.2s;
+  display: inline-block;
+}
+
+.button:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 51, 255, 0.3);
+}
+
+.feedbackContainer {
+  max-width: 700px;
+  width: 100%;
+}
+
+.backToHome {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+

@@ -1,0 +1,281 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum VisitStatus {
+  WAITING
+  IN_TRIAGE
+  ROOMED
+  DISCHARGED
+  LWBS // Left Without Being Seen
+}
+
+enum ArrivalPath {
+  WALK_IN
+  EMS
+  TRAUMA_DIRECT
+  OTHER
+}
+
+enum IntakeSource {
+  MOBILE
+  KIOSK
+  STAFF_ASSISTED
+}
+
+enum EwsType {
+  PROVISIONAL
+  VERIFIED
+}
+
+enum EwsLevel {
+  CRITICAL
+  HIGH
+  MODERATE
+  LOW
+}
+
+enum StaffRole {
+  NURSE
+  REGISTRAR
+  ADMIN
+  CHARGE_NURSE
+}
+
+enum IdDocumentType {
+  DRIVERS_LICENSE
+  STATE_ID
+  PASSPORT
+  OTHER
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model PatientProfile {
+  id                String    @id @default(cuid())
+  firstName         String
+  lastName          String
+  dob               DateTime
+  sex               Sex
+  phone             String?
+  email             String?
+  addressLine1      String?
+  addressLine2      String?
+  city              String?
+  state             String?
+  zipCode           String?
+  country           String?   @default("US")
+  languagePreference String?  @default("en")
+  epicPatientId     String?   // EPIC patient identifier after sync
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  visits            Visit[]
+  insuranceProfiles InsuranceProfile[]
+  idDocuments       IdDocument[]
+
+  // Indexes for duplicate detection and lookups
+  @@index([dob, firstName, lastName])
+  @@index([epicPatientId])
+  @@index([phone])
+  @@index([email])
+}
+
+model Visit {
+  id                String      @id @default(cuid())
+  patientProfileId  String
+  arrivalTimestamp  DateTime    @default(now())
+  status            VisitStatus @default(WAITING)
+  arrivalPath       ArrivalPath @default(WALK_IN) // How patient arrived
+  epicEncounterId   String?     // EPIC encounter identifier after sync
+  notes             String?     // Staff notes/comments
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  patientProfile    PatientProfile @relation(fields: [patientProfileId], references: [id], onDelete: Cascade)
+  intakeForm        IntakeForm?
+  ewsAssessments    EwsAssessment[]
+  vitals            Vitals[]
+
+  // Indexes for queue sorting and filtering
+  // Primary waiting room query: filter by status (WAITING, IN_TRIAGE) and sort by arrival time
+  @@index([status, arrivalTimestamp])
+  // For date range queries (e.g., visits in last 24 hours)
+  @@index([arrivalTimestamp])
+  // For patient lookup
+  @@index([patientProfileId])
+  // For EPIC sync status checks
+  @@index([epicEncounterId])
+  // For filtering active visits (not discharged/LWBS)
+  @@index([status, updatedAt])
+  // For filtering by arrival path
+  @@index([arrivalPath])
+}
+
+model IntakeForm {
+  id                    String        @id @default(cuid())
+  visitId               String        @unique
+  intakeSource          IntakeSource
+  chiefComplaintCategory String?      // e.g., "Chest Pain", "Respiratory", "Trauma"
+  chiefComplaintText    String?       // Free-text chief complaint
+  symptomAnswers        Json?         // Dynamic Q&A responses: { questionId: answer, ... }
+  riskFactors           Json?         // Risk factors: { pregnancy: true, cardiacHistory: true, ... }
+  submittedAt           DateTime      @default(now())
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  // Relations
+  visit                 Visit         @relation(fields: [visitId], references: [id], onDelete: Cascade)
+
+  // Indexes for filtering and analytics
+  // visitId is already unique, so has implicit index
+  // Filter by complaint category (common dashboard filter)
+  @@index([chiefComplaintCategory])
+  // Filter by intake source (analytics)
+  @@index([intakeSource])
+  // Date range queries for analytics
+  @@index([submittedAt])
+  // Composite for filtering by source and date
+  @@index([intakeSource, submittedAt])
+}
+
+model EwsAssessment {
+  id              String    @id @default(cuid())
+  visitId         String
+  type            EwsType
+  score           Float?    // Numeric score (optional, level is primary)
+  level           EwsLevel
+  flags           Json?     // Risk flags: ["chest_pain_acs", "stroke_like", "respiratory_distress"]
+  createdByUserId String?   // Nullable for provisional, required for verified
+  createdAt       DateTime  @default(now())
+
+  // Relations
+  visit           Visit     @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  createdBy       StaffUser? @relation(fields: [createdByUserId], references: [id])
+
+  // Indexes for risk-sorted queue and waiting room queries
+  // Get latest assessment per visit (for joining with Visit in queue queries)
+  @@index([visitId, createdAt])
+  // Get latest provisional or verified assessment per visit
+  @@index([visitId, type, createdAt])
+  // Sort waiting room by EWS level (used with Visit.status filter)
+  @@index([level, createdAt])
+  // For filtering by assessment type
+  @@index([type])
+  // For user activity tracking
+  @@index([createdByUserId])
+}
+
+model Vitals {
+  id                      String    @id @default(cuid())
+  visitId                 String
+  heartRate               Int?      // bpm
+  bloodPressureSystolic   Int?      // mmHg
+  bloodPressureDiastolic  Int?      // mmHg
+  respirations            Int?      // per minute
+  temperature             Float?    // Fahrenheit or Celsius (specify in app)
+  spo2                    Float?    // Oxygen saturation percentage
+  weight                  Float?    // kg or lbs (specify in app)
+  recordedByUserId        String
+  recordedAt              DateTime  @default(now())
+  createdAt               DateTime  @default(now())
+
+  // Relations
+  visit                   Visit     @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  recordedBy              StaffUser @relation(fields: [recordedByUserId], references: [id])
+
+  // Indexes for vitals queries
+  // Get latest vitals per visit (common query pattern)
+  @@index([visitId, recordedAt])
+  // Date range queries for analytics
+  @@index([recordedAt])
+  // Staff activity tracking
+  @@index([recordedByUserId, recordedAt])
+}
+
+model InsuranceProfile {
+  id              String   @id @default(cuid())
+  patientProfileId String
+  providerName    String?  // Insurance company name
+  memberId        String?  // Member/Subscriber ID
+  groupId         String?  // Group number
+  policyHolderName String? // Name of policy holder (if different from patient)
+  rawImageUrl     String?  // URL to scanned insurance card image
+  isPrimary       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  patientProfile  PatientProfile @relation(fields: [patientProfileId], references: [id], onDelete: Cascade)
+
+  @@index([patientProfileId])
+  @@index([memberId])
+}
+
+model IdDocument {
+  id              String          @id @default(cuid())
+  patientProfileId String
+  docType         IdDocumentType
+  imageUrl        String          // URL to scanned ID image
+  extractedData   Json?           // OCR-extracted data if available: { name, dob, address, ... }
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  patientProfile  PatientProfile  @relation(fields: [patientProfileId], references: [id], onDelete: Cascade)
+
+  @@index([patientProfileId])
+  @@index([docType])
+}
+
+model StaffUser {
+  id              String     @id @default(cuid())
+  name            String
+  email           String     @unique
+  role            StaffRole
+  department      String?    // e.g., "Emergency Department", "Registration"
+  passwordHash    String?    // For authentication (nullable if using OAuth)
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  lastLoginAt     DateTime?
+
+  // Relations
+  ewsAssessments  EwsAssessment[] // Assessments created/verified by this user
+  vitals          Vitals[]        // Vitals recorded by this user
+
+  // Indexes for staff queries
+  // email is unique, so has implicit index
+  // Common query: get active staff by role (e.g., all active nurses)
+  @@index([role, isActive])
+  // Filter by department and role
+  @@index([department, role])
+  // Active staff lookup
+  @@index([isActive])
+  // Login tracking
+  @@index([lastLoginAt])
+}
+

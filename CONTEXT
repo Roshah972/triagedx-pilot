@@ -1,0 +1,342 @@
+Here’s an updated CONTEXT file with the new decisions baked in (nurse still does full triage, quick-verify before Epic sync, no live vitals/monitoring, etc.). I’ve only changed what needed to change and tightened the clinical boundary.
+
+⸻
+
+TRIAGEDX – ER Walk-In Intake & Triage Accelerator
+
+Pilot v12
+
+⸻
+
+0. One-Line Summary
+
+TRIAGEDX is a web-based intake + triage accelerator for Emergency Department (ED) walk-in patients, shifting data entry from staff to patients, generating a provisional Early Warning Score (EWS) and risk flags, and pushing verified structured intake data into EPIC (via FHIR) to remove registration bottlenecks and reduce dangerous delays—without replacing formal nurse triage.
+
+⸻
+
+1. Strategic Context
+
+1.1 Problem Space (Real ER Reality)
+
+US ER intake is dominated by:
+	•	Manual registration at a front desk
+	•	Repeated questions about demographics, insurance, and chief complaint
+	•	No early risk signal before nurse triage
+
+Key pain points (from multiple nurse interviews):
+	1.	Registration bottlenecks and lines at the front desk
+	2.	Dangerous delays before clinical triage; high-risk patients may sit in the lobby with no visibility
+	3.	Double documentation: nurses/registrars re-typing info into EPIC
+	4.	No automated early warning score at arrival
+	5.	Fragmented workflow across multiple systems/forms
+	6.	Overloaded front desk staff dragging nurses into non-clinical tasks
+	7.	Poor patient communication and no expectation management
+	8.	Language barriers increasing registration time
+	9.	Repeat patients answering the same questions every visit
+	10.	Staff burnout due to time-wasting, low-value tasks
+	11.	No real-time overview of waiting room risk
+	12.	Inconsistent symptom gathering between nurses
+	13.	Time lost on low-value data entry (address, DOB, IDs)
+
+1.2 Non-Negotiable Constraints
+	•	Walk-in environment: no scheduled visits, no mandatory pre-arrival registration.
+	•	System must collapse steps for staff, not add new ones.
+	•	Must support edge cases:
+	•	No phone / can’t use tech
+	•	No ID / no insurance
+	•	Intoxicated/altered patients
+	•	Trauma / direct-to-room
+	•	Proxies (family/visitor fills info)
+	•	Must be designed to integrate with EPIC via FHIR, not replace it.
+	•	Clinical boundary: TRIAGEDX does not perform or replace formal nurse triage and is not a real-time monitoring device. Nurses remain fully responsible for official triage and documentation in the EHR.
+
+⸻
+
+2. Core Concept & Modules
+
+2.1 High-Level Architecture
+
+TRIAGEDX is conceptually split into:
+	1.	P-Portal (Patient Portal) – Lobby self-check-in via:
+	•	Mobile (QR code)
+	•	Kiosk/tablet
+	•	Staff-assisted mode
+	2.	S-Dashboard (Staff Dashboard) – Real-time triage & registration command center for:
+	•	Nurses
+	•	Registrars
+	•	Charge nurses / leadership
+	3.	Triage Engine – Age-aware, sex-aware chief complaint evaluation that:
+	•	Uses rule-based severity assignment (RED/ORANGE/YELLOW/GREEN)
+	•	Considers age brackets (INFANT, CHILD, ADOLESCENT, ADULT, GERIATRIC)
+	•	Considers biological sex (pregnancy, atypical presentations)
+	•	Outputs a provisional severity + EWS level (CRITICAL/HIGH/MODERATE/LOW) and human-readable rationale
+	4.	FHIR/EPIC Integration Layer
+	•	Maps internal data models to FHIR resources
+	•	Pushes verified intake + encounter metadata into EPIC
+	5.	Analytics & Admin Panel
+	•	Ops metrics (time-to-triage, LWBS risk, risk mix)
+	•	Configuration (question sets, thresholds, languages)
+
+⸻
+
+3. User Roles & Permissions
+
+3.1 Patient
+
+Abilities:
+	•	Start self-check-in via QR or kiosk
+	•	Enter demographics, contact, insurance, chief complaint, and symptoms
+	•	See simple queue status + expectation info
+	•	Optionally complete in supported languages
+	•	Upload ID/insurance photos (optional)
+
+3.2 Registrar
+
+Abilities:
+	•	See new arrivals and their submitted data
+	•	Use Quick-Verify screen to:
+	•	Confirm or correct core demographics (name, DOB)
+	•	View and verify ID/insurance images
+	•	Mark data as verified
+	•	Push verified demographic/insurance data into EPIC via FHIR
+	•	Mark patients as “Verified / ready for triage”
+
+3.3 Triage Nurse
+
+Abilities:
+	•	See real-time risk-sorted queue of waiting patients
+	•	View patient card (symptoms, provisional EWS, rule-based flags, wait time)
+	•	Call patient from dashboard
+	•	Enter vitals and mark triage complete in TRIAGEDX (for verified EWS support), but:
+	•	Official triage assessment (ESI, vitals, notes) is still documented in EPIC
+	•	Update patient status (Called to triage, Roomed, LWBS, etc.)
+	•	Mark visit as “Triage Complete” in TRIAGEDX, which:
+	•	Locks the pre-triage snapshot
+	•	Clears the waiting-room queue entry
+
+3.4 Charge Nurse / Admin
+
+Abilities:
+	•	See a global view of waiting room and triage status
+	•	Monitor risk mix (Critical/High/Moderate/Low) and time-to-triage
+	•	Access basic analytics
+	•	Manage configuration (language options, question sets, thresholds)
+
+⸻
+
+4. Patient Journey / Flows
+
+4.1 Default Flow – Walk-In Self-Check-In
+	1.	Patient arrives in ER lobby.
+	2.	Sees large QR code and/or kiosk labeled “Check In Here”.
+	3.	Opens P-Portal:
+	•	On mobile via QR
+	•	On kiosk tablet
+	4.	Completes intake steps:
+	•	Demographics
+	•	Contact info
+	•	Insurance & ID scan (if possible)
+	•	Chief complaint (free text + category)
+	•	Symptom questions (dynamic, complaint-specific)
+	•	Relevant risk factors
+	5.	Submits form.
+	6.	Backend creates/updates PatientProfile + Visit + IntakeForm.
+	7.	Triage engine evaluates chief complaint (age/sex aware) and assigns provisional severity (RED/ORANGE/YELLOW/GREEN).
+	8.	Severity is converted to provisional EWS level (CRITICAL/HIGH/MODERATE/LOW).
+	9.	S-Dashboard updates in real time with a new patient card showing:
+	•	Name / alias
+	•	Age / sex
+	•	Time of arrival + wait duration
+	•	Chief complaint
+	•	Key symptom highlights
+	•	Provisional EWS (color-coded)
+	•	Verification status (Not Verified / Verified)
+	10.	Registrar opens Quick-Verify:
+	•	Confirms or edits name + DOB
+	•	Glances at ID/insurance images
+	•	Marks demographics/insurance as Verified
+	•	Clicks “Verify & Push to EPIC” to send FHIR Patient + Coverage + Encounter shell to EPIC.
+	11.	Triage nurse uses S-Dashboard to:
+	•	See risk-sorted queue
+	•	Review complaint & flags
+	•	Call patient to triage
+	12.	Nurse performs official triage:
+	•	Uses hospital equipment for vitals
+	•	Follows ED triage protocol
+	•	Documents triage and vitals in EPIC as usual
+	13.	Optionally, nurse enters vitals into TRIAGEDX:
+	•	Records vitals → verified EWS recalculated
+	•	Marks visit as “Triage Complete”:
+	•	Locks TRIAGEDX pre-triage snapshot + verified EWS
+	•	Updates status in queue (Roomed / Waiting for MD / etc.)
+
+Important: TRIAGEDX never claims its EWS replaces clinical judgment or official triage in EPIC. It provides a pre-triage snapshot + advisory score only.
+
+4.2 Staff-Assisted Quick-Check Flow (Edge Case)
+
+Used when patient can’t or won’t use P-Portal:
+	1.	Registrar or nurse opens staff-assisted intake form (same backend schema).
+	2.	Captures minimal subset:
+	•	Name (or alias if unknown)
+	•	Approximate age / DOB if possible
+	•	Chief complaint
+	•	2–3 high-risk screening questions
+	3.	Submits → triggers triage engine and creates a Visit.
+	4.	Patient appears on S-Dashboard with provisional EWS and minimal data.
+	5.	Full demographics/insurance are gathered and verified later when feasible.
+
+4.3 Trauma / Direct-to-Room Bypass
+
+For critical arrivals where triage happens immediately:
+	1.	Staff marks “Direct-to-room” in TRIAGEDX with minimal data:
+	•	Alias / placeholder name
+	•	Age range (if needed)
+	•	Chief complaint (e.g., “Trauma”, “Code Stroke”, etc.)
+	2.	System still captures arrival time and can be backfilled with real data later.
+	3.	Triage and documentation occur primarily in EPIC; TRIAGEDX is used mainly for arrival tracking and analytics.
+
+⸻
+
+5. Feature Breakdown (What to Build)
+
+5.1 P-Portal (Patient Portal)
+
+Core features:
+	•	Entry modes:
+	•	Mobile (QR)
+	•	Kiosk/tablet
+	•	Staff-assisted
+	•	Forms:
+	•	Demographics: name, DOB, sex, address, phone, email
+	•	Insurance info: provider, member ID, group, photo scan
+	•	ID scan: driver’s license or ID image
+	•	Chief complaint: short free-text + category
+	•	Symptom flow: dynamic Q&A based on complaint
+	•	Risk factors: history of CHD, stroke, pregnancy, etc.
+	•	Language & accessibility:
+	•	Multi-language (configurable)
+	•	Large text mode
+	•	Simple reading level
+	•	Submission:
+	•	Validation
+	•	Clear success confirmation
+	•	Optional simple queue-view handoff
+
+Note: P-Portal never shows live vitals. Any “vitals” entered here are self-reported and used only as context for provisional scoring.
+
+5.2 S-Dashboard (Staff Dashboard)
+
+Core features:
+	•	Patient queue view:
+	•	List or tiled view
+	•	Sort by:
+	•	Provisional EWS risk level
+	•	Arrival time
+	•	Age
+	•	Chief complaint
+	•	Filters:
+	•	“Critical / High”
+	•	“Peds”
+	•	“Unseen > 30 min”
+	•	Specific complaint categories
+	•	Patient card:
+	•	Name / alias
+	•	Age / sex
+	•	Arrival time + dynamic wait duration
+	•	Chief complaint
+	•	Key symptom bullets
+	•	Provisional EWS + color and rule-based flags
+	•	Verification status (Not Verified / Verified)
+	•	Status (Waiting, Called to triage, Roomed, LWBS, etc.)
+	•	Actions:
+	•	Mark “Called to triage”
+	•	Mark “Vitals taken” (for verified EWS calc)
+	•	Mark “Roomed”
+	•	Mark “Left without being seen (LWBS)”
+	•	Mark “Triage Complete”
+	•	Notes field for staff comments
+
+5.3 Registrar Quick-Verify Mode
+
+Core features:
+	•	Single-screen summary of submitted patient data:
+	•	Name, DOB, address
+	•	Phone/email
+	•	Insurance summary
+	•	Chief complaint
+	•	Photo preview of ID and insurance (if provided)
+	•	Editable demographic fields
+	•	Fast workflow target: 10–20 seconds per patient
+	•	Action: “Verify & Push to EPIC” which:
+	•	Confirms core demographics
+	•	Creates/updates FHIR Patient, Coverage, Encounter shell in EPIC
+	•	Flags:
+	•	Missing insurance
+	•	Possible duplicate (name + DOB match)
+	•	Status:
+	•	“Not Verified” → “Verified (Synced to EPIC)”
+
+Rule: No data is pushed into EPIC until a staff member completes Quick-Verify. Self-entered data is advisory until verified.
+
+5.4 Triage Engine (Age-Aware, Sex-Aware)
+
+Core design:
+	•	Input:
+	•	Patient context: age, age bracket, biological sex
+	•	Chief complaint category (CHEST_PAIN, BREATHING, ABDOMINAL_PAIN, FEVER, NEURO, TRAUMA, PSYCH, OTHER)
+	•	Complaint subtype (optional)
+	•	Key symptom answers (from dynamic flow)
+	•	Risk factors
+	•	Output:
+	•	Severity level: RED/ORANGE/YELLOW/GREEN
+	•	Provisional EWS level: CRITICAL/HIGH/MODERATE/LOW
+	•	Rule hits (transparent rule list + descriptions + weights)
+	•	Human-readable rationale string
+	•	Flags for display (e.g., suspected ACS, sepsis concern, etc.)
+	•	Behavior:
+	•	Rule-based, no black-box ML
+	•	Age-aware, sex-aware thresholds
+	•	Complaint-specific logic
+	•	Implemented as evaluateTriage(triageInput) => {severity, ewsLevel, ruleHits, rationale}
+
+5.5 EPIC/FHIR Integration Layer
+
+Conceptual behavior:
+	•	Internal intake data mapped to FHIR resources:
+	•	Patient
+	•	Coverage (insurance)
+	•	Encounter (ER visit shell)
+	•	Observation (EWS, maybe symptom summary)
+	•	Condition / Observation for chief complaint
+	•	Sync rules:
+	•	Only verified demographics/insurance are synced.
+	•	Patient mapping uses name + DOB + internal epicPatientId (when available).
+	•	Intake summary is attached to Encounter as a document or Observation.
+	•	Constraints:
+	•	No real-time vital sign streaming
+	•	No automatic override of nurse-entered data in EPIC
+	•	TRIAGEDX remains an intake + pre-triage support tool, not a monitoring device
+	•	Abstraction:
+	•	EpicIntegrationService with methods:
+	•	syncPatientProfile(patientProfile)
+	•	syncVisit(visit, intake, ews, vitals?)
+
+⸻
+
+6–18
+
+All stack, file structure, design system, testing, and future work sections remain as in your draft, with these clarifying principles locked in:
+	•	TRIAGEDX:
+	•	Shifts data entry from staff → patients.
+	•	Generates a provisional risk signal at arrival.
+	•	Requires staff verification before anything is pushed into EPIC.
+	•	Does not replace nurse triage or official vitals documentation.
+	•	Does not stream live vitals or behave as a medical device.
+	•	Nurses:
+	•	Still do full triage in-person.
+	•	Still chart in EPIC.
+	•	Use TRIAGEDX as a head start: clean intake + risk overview + pre-triage snapshot.
+
+⸻
+
+If you want, next step I can turn this into a tight CONTEXT.md you can drop straight into Cursor, or a shorter “Pilot v12 – Cursor Prompt Header” version.

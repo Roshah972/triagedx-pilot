@@ -1,0 +1,698 @@
+/* Full-screen mobile-first design */
+.mobileContainer,
+.kioskContainer {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  width: 100%;
+  background: var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Remove box wrapper - use full screen */
+.checkInWrapper {
+  flex: 1;
+  width: 100%;
+  background: var(--color-white);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* iPad and larger - add some padding */
+@media (min-width: 768px) {
+  .checkInWrapper {
+    padding: 2rem;
+    max-width: 100%;
+  }
+  
+  .kioskContainer .checkInWrapper {
+    padding: 3rem;
+  }
+}
+
+/* Progress bar - full width at top */
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .progressBar {
+    height: 8px;
+    margin-bottom: 2rem;
+  }
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  border-radius: 0 4px 4px 0;
+}
+
+/* Logo */
+.checkInLogo {
+  margin: 0 auto 1rem auto;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .checkInLogo {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* Typography - larger for mobile */
+.pageTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .pageTitle {
+    font-size: 2.25rem;
+    margin-bottom: 2rem;
+  }
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: #1a1a1a;
+}
+
+@media (min-width: 768px) {
+  .sectionTitle {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.subsectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+@media (min-width: 768px) {
+  .subsectionTitle {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stepDescription {
+  color: #666;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+  .stepDescription {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Form styles - full width, larger touch targets */
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .formGroup {
+    margin-bottom: 2rem;
+  }
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .formGroup label {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  background: white;
+  min-height: 48px; /* Minimum touch target size */
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(88, 51, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+  .formGroup input,
+  .formGroup select,
+  .formGroup textarea {
+    padding: 1.25rem;
+    font-size: 1.1rem;
+    min-height: 56px;
+  }
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+@media (min-width: 768px) {
+  .formGroup textarea {
+    min-height: 150px;
+  }
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .formRow {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+/* Yes/No buttons - larger for mobile */
+.yesnoButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.yesnoButton {
+  padding: 1rem 1.5rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yesnoButton:active {
+  transform: scale(0.98);
+}
+
+.yesnoButton:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-cloud);
+}
+
+.yesnoButton.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: transparent;
+}
+
+@media (min-width: 768px) {
+  .yesnoButton {
+    padding: 1.25rem 2rem;
+    font-size: 1.1rem;
+    min-height: 60px;
+  }
+}
+
+/* Checkboxes - larger for mobile */
+.checkboxGroup {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.checkboxGroup:hover {
+  background-color: #f9f9f9;
+}
+
+.checkboxGroup input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  cursor: pointer;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .checkboxGroup input[type='checkbox'] {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+}
+
+.checkboxGroup label {
+  margin: 0;
+  font-weight: normal;
+  cursor: pointer;
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+  .checkboxGroup label {
+    font-size: 1.05rem;
+  }
+}
+
+/* Risk factors section */
+.riskFactorsSection {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.complaintChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .complaintChips {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+}
+
+.riskFactorChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .riskFactorChips {
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+}
+
+/* Review section */
+.reviewSection {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--color-cloud);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-haze);
+}
+
+@media (min-width: 768px) {
+  .reviewSection {
+    padding: 2rem;
+  }
+}
+
+.reviewText {
+  margin-bottom: 0.75rem;
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.reviewLabel {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Navigation buttons - sticky at bottom */
+.navigationButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 2rem;
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 1px solid #e0e0e0;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .navigationButtons {
+    padding-top: 2.5rem;
+    padding-bottom: 2rem;
+  }
+}
+
+.navButton {
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navButton:active {
+  transform: scale(0.98);
+}
+
+.backButton {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.backButton:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.nextButton,
+.submitButton {
+  background: var(--color-primary);
+  color: white;
+}
+
+.nextButton:hover:not(:disabled),
+.submitButton:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 51, 255, 0.2);
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .navButton {
+    padding: 1.25rem 2rem;
+    font-size: 1.1rem;
+    min-height: 60px;
+  }
+}
+
+/* Success message - full screen */
+.successMessage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  background: white;
+}
+
+.successTitle {
+  color: #28a745;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.successText {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+@media (min-width: 768px) {
+  .successTitle {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .successText {
+    font-size: 1.25rem;
+  }
+}
+
+/* Error message */
+.errorMessage {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 2px solid #fcc;
+  font-size: 0.95rem;
+}
+
+/* Language and Accessibility Controls */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 12px 12px;
+  margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.languageSelector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.languageSelector label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  margin: 0;
+}
+
+.languageSelect {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.accessibilityToggle {
+  display: flex;
+  align-items: center;
+}
+
+.accessibilityToggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  margin: 0;
+}
+
+.toggleCheckbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+/* Accessibility Mode Styles */
+.accessibilityMode {
+  font-size: 1.25rem;
+}
+
+.accessibilityMode .checkInWrapper {
+  padding: 1.5rem;
+}
+
+.accessibilityMode .pageTitle {
+  font-size: 2.25rem;
+  margin-bottom: 2rem;
+}
+
+.accessibilityMode .sectionTitle {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.accessibilityMode .subsectionTitle {
+  font-size: 1.5rem;
+}
+
+.accessibilityMode .formGroup {
+  margin-bottom: 2rem;
+}
+
+.accessibilityMode .formGroup label {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.accessibilityInput {
+  padding: 1.25rem !important;
+  font-size: 1.3rem !important;
+  min-height: 64px !important;
+  border-width: 3px !important;
+}
+
+.accessibilityMode .yesnoButton,
+.accessibilityButton {
+  padding: 1.5rem 2rem !important;
+  font-size: 1.3rem !important;
+  min-height: 72px !important;
+  border-width: 3px !important;
+}
+
+.accessibilityMode .navButton {
+  padding: 1.75rem 2.5rem !important;
+  font-size: 1.5rem !important;
+  min-height: 80px !important;
+}
+
+.accessibilityMode .stepDescription {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.accessibilityMode .checkboxGroup {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+
+.accessibilityCheckbox {
+  min-width: 32px !important;
+  min-height: 32px !important;
+}
+
+.accessibilityMode .checkboxGroup label {
+  font-size: 1.3rem;
+  line-height: 1.6;
+}
+
+.accessibilityMode .reviewSection {
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.accessibilityMode .reviewText {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .yesnoButtons {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .navigationButtons {
+    flex-direction: column;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .checkInWrapper {
+    padding: 0.75rem;
+  }
+  
+  .pageTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .sectionTitle {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .formGroup {
+    margin-bottom: 1rem;
+  }
+  
+  .navigationButtons {
+    padding-top: 1rem;
+    padding-bottom: 0.5rem;
+  }
+}

@@ -1,0 +1,776 @@
+/* Full-screen dashboard - optimized for iPad and iPhone */
+.dashboard {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Header - sticky at top */
+.header {
+  background: var(--color-white);
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 1.5rem 2rem;
+    gap: 1.5rem;
+  }
+}
+
+.headerLogo {
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.headerSubtitle {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .header h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.headerInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+@media (min-width: 768px) {
+  .headerInfo {
+    gap: 2rem;
+    font-size: 0.95rem;
+  }
+}
+
+.patientCount {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+.lastUpdate {
+  color: #999;
+}
+
+/* Controls - sticky below header */
+.controls {
+  background: white;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .controls {
+    padding: 1.5rem 2rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.filters,
+.sorting {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.filters label,
+.sorting label {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.filterButtons,
+.sortButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filterButton,
+.sortButton {
+  padding: 0.75rem 1.25rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: var(--radius-xl);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px; /* iOS minimum touch target */
+  white-space: nowrap;
+}
+
+.filterButton:active,
+.sortButton:active {
+  transform: scale(0.98);
+}
+
+.filterButton:hover,
+.sortButton:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-cloud);
+}
+
+.filterButtonActive {
+  background: var(--color-primary) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+.sortButtonActive {
+  background-color: var(--color-cloud) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+.sortIndicator {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Patient Grid - scrollable main content */
+.patientGrid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .patientGrid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .patientGrid {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  }
+}
+
+/* Patient Card - full width on mobile */
+.patientCard {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  transition: all 0.2s;
+  border: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+}
+
+.patientCardClickable {
+  cursor: pointer;
+  outline: none;
+}
+
+.patientCardClickable:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.patientCard:active {
+  transform: scale(0.99);
+}
+
+.patientCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  border-color: var(--color-haze);
+}
+
+.patientCardLongWait {
+  border-color: var(--color-critical);
+  background: #fff5f5;
+}
+
+.preTriageBadge {
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-cloud);
+  color: #666;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--color-haze);
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+  gap: 1rem;
+}
+
+.patientName {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  flex: 1;
+  line-height: 1.3;
+}
+
+@media (min-width: 768px) {
+  .patientName {
+    font-size: 1.25rem;
+  }
+}
+
+.ewsBadge {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.badgeCritical {
+  background: var(--color-critical);
+  color: white;
+}
+
+.badgeHigh {
+  background: var(--color-high);
+  color: white;
+}
+
+.badgeModerate {
+  background: var(--color-moderate);
+  color: #333;
+}
+
+.badgeLow {
+  background: var(--color-low);
+  color: white;
+}
+
+.badgeUnknown {
+  background-color: #6c757d;
+  color: white;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.cardRow {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .cardRow {
+    font-size: 0.95rem;
+  }
+}
+
+.cardLabel {
+  font-weight: 600;
+  color: #666;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.cardValue {
+  color: #1a1a1a;
+  flex: 1;
+  word-break: break-word;
+}
+
+.waitTimeLong {
+  color: #dc3545;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.flag {
+  padding: 0.375rem 0.75rem;
+  background: var(--color-cloud);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--color-haze);
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 2px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.verificationStatus {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px; /* iOS touch target */
+  min-width: 80px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.actionButton:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.actionButton:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.actionButton:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .actionButton {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+.verificationBadge {
+  padding: 0.375rem 0.75rem;
+  background-color: #d4edda;
+  color: #155724;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #c3e6cb;
+}
+
+.statusBadge {
+  padding: 0.5rem 1rem;
+  background: var(--color-cloud);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid var(--color-haze);
+}
+
+.actionButtonVerify {
+  background: var(--color-high) !important;
+}
+
+.actionButtonVerify:hover {
+  background: #e66a00 !important;
+}
+
+.syncedBadge {
+  padding: 0.5rem 1rem;
+  background: #d4edda;
+  color: #155724;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #c3e6cb;
+}
+
+/* Loading and Error States */
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.error {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem;
+  border: 2px solid #fcc;
+  font-size: 0.95rem;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #999;
+  font-size: 1.1rem;
+}
+
+.emptyState h2 {
+  font-size: 1.5rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+/* Quick Actions Section */
+.quickActions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quickActionButtons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quickActionButton {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-cloud);
+  color: var(--color-primary);
+  border: 1px solid var(--color-haze);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.quickActionButton:hover:not(:disabled) {
+  background: var(--color-haze);
+  border-color: var(--color-primary);
+}
+
+.quickActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.quickActionButtonDanger {
+  background: #fff5f5;
+  color: var(--color-critical);
+  border-color: #fcc;
+}
+
+.quickActionButtonDanger:hover:not(:disabled) {
+  background: #fee;
+  border-color: var(--color-critical);
+}
+
+.quickActionButtonPrimary {
+  background: var(--color-primary) !important;
+  color: white !important;
+  border-color: var(--color-primary) !important;
+  font-weight: 700;
+}
+
+.quickActionButtonPrimary:hover:not(:disabled) {
+  background: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+}
+
+/* Notes Section */
+.notesSection {
+  width: 100%;
+}
+
+.notesButton {
+  width: 100%;
+  padding: 0.5rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px dashed var(--color-haze);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 36px;
+}
+
+.notesButton:hover {
+  background: var(--color-cloud);
+  border-color: var(--color-primary);
+  border-style: solid;
+}
+
+.notesEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notesInput {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-haze);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.notesInput:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+  border-color: var(--color-primary);
+}
+
+.notesActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.notesSaveButton,
+.notesCancelButton {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 32px;
+}
+
+.notesSaveButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.notesSaveButton:hover:not(:disabled) {
+  background: var(--color-secondary);
+}
+
+.notesSaveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notesCancelButton {
+  background: transparent;
+  color: #666;
+  border: 1px solid var(--color-gray-300);
+}
+
+.notesCancelButton:hover {
+  background: var(--color-gray-100);
+  border-color: var(--color-gray-400);
+}
+
+.notesDisplay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notesText {
+  padding: 0.5rem;
+  background: var(--color-cloud);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: #333;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notesEditButton {
+  align-self: flex-end;
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.notesEditButton:hover {
+  color: var(--color-secondary);
+}
+
+/* Responsive - iPhone */
+@media (max-width: 480px) {
+  .header {
+    padding: 0.75rem;
+  }
+  
+  .header h1 {
+    font-size: 1.25rem;
+  }
+  
+  .controls {
+    padding: 0.75rem;
+  }
+  
+  .patientGrid {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .patientCard {
+    padding: 1rem;
+  }
+  
+  .filterButtons,
+  .sortButtons {
+    flex-direction: column;
+  }
+  
+  .filterButton,
+  .sortButton {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Responsive - iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .patientGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Landscape orientation */
+@media (max-height: 600px) and (orientation: landscape) {
+  .header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .header h1 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .controls {
+    padding: 0.75rem 1rem;
+  }
+  
+  .patientGrid {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+}
+
+/* Safe area support for iOS */
+@supports (padding: max(0px)) {
+  .dashboard {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+  
+  .patientGrid {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

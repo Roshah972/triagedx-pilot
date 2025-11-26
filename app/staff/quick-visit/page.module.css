@@ -1,0 +1,337 @@
+/* Full-screen quick visit creation - modern design */
+.container {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.header {
+  background: var(--color-white);
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding: 1.5rem 2rem;
+  }
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .subtitle {
+    font-size: 1.05rem;
+  }
+}
+
+.backButton {
+  padding: 0.75rem 1.5rem;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+}
+
+.backButton:active {
+  transform: scale(0.98);
+}
+
+.backButton:hover {
+  background-color: #e0e0e0;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+.infoBox {
+  background: #fff3cd;
+  border: 1px solid var(--color-moderate);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  color: #856404;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.infoBox p {
+  margin: 0.5rem 0;
+}
+
+.infoBox p:first-child {
+  margin-top: 0;
+}
+
+.infoBox p:last-child {
+  margin-bottom: 0;
+}
+
+.form {
+  background: var(--color-white);
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .form {
+    padding: 2rem;
+  }
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .formRow {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.formGroup label {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .formGroup label {
+    font-size: 1.05rem;
+  }
+}
+
+.required {
+  color: #dc3545;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  background: white;
+  min-height: 48px;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(88, 51, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+  .formGroup input,
+  .formGroup select,
+  .formGroup textarea {
+    padding: 1.25rem;
+    font-size: 1.05rem;
+    min-height: 56px;
+  }
+}
+
+.formGroup textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f0f0f0;
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}
+
+.cancelButton,
+.submitButton {
+  flex: 1;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancelButton:active,
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.cancelButton {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.cancelButton:hover {
+  background-color: #e0e0e0;
+}
+
+.submitButton {
+  background: var(--color-primary);
+  color: white;
+}
+
+.submitButton:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 51, 255, 0.2);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .cancelButton,
+  .submitButton {
+    padding: 1.25rem 2rem;
+    font-size: 1.05rem;
+    min-height: 60px;
+  }
+}
+
+.errorMessage {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #fcc;
+  font-size: 0.95rem;
+}
+
+.successMessage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  margin: 1.5rem;
+}
+
+.successMessage h1 {
+  color: #28a745;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.successMessage p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+  .successMessage {
+    margin: 2rem;
+  }
+  
+  .successMessage h1 {
+    font-size: 2.5rem;
+  }
+  
+  .successMessage p {
+    font-size: 1.25rem;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .actions {
+    flex-direction: column;
+  }
+}
+
+/* Landscape orientation */
+@media (max-height: 600px) and (orientation: landscape) {
+  .content {
+    padding: 1rem;
+  }
+  
+  .header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .header h1 {
+    font-size: 1.25rem;
+  }
+}

@@ -1,0 +1,95 @@
+/* Slide Transition Styles */
+
+.slideWrapper {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.slideContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform var(--duration, 300ms) ease-in-out,
+              opacity var(--duration, 300ms) ease-in-out;
+  will-change: transform, opacity;
+}
+
+.slideContainer.active {
+  opacity: 1;
+  transform: translateX(0);
+  position: relative;
+}
+
+/* Direction variants */
+.slideContainer.left {
+  transform: translateX(100%);
+}
+
+.slideContainer.left.active {
+  transform: translateX(0);
+}
+
+.slideContainer.right {
+  transform: translateX(-100%);
+}
+
+.slideContainer.right.active {
+  transform: translateX(0);
+}
+
+.slideContainer.up {
+  transform: translateY(100%);
+}
+
+.slideContainer.up.active {
+  transform: translateY(0);
+}
+
+.slideContainer.down {
+  transform: translateY(-100%);
+}
+
+.slideContainer.down.active {
+  transform: translateY(0);
+}
+
+/* Exit animations */
+.slideContainer.left:not(.active) {
+  transform: translateX(-100%);
+}
+
+.slideContainer.right:not(.active) {
+  transform: translateX(100%);
+}
+
+.slideContainer.up:not(.active) {
+  transform: translateY(-100%);
+}
+
+.slideContainer.down:not(.active) {
+  transform: translateY(100%);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .slideContainer {
+    transition: opacity 0.1s ease;
+    transform: none !important;
+  }
+  
+  .slideContainer.active {
+    transform: none !important;
+  }
+}
+
+/* Performance optimization */
+.slideContainer {
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
