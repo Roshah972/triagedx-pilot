@@ -1,6 +1,3 @@
-Here’s an updated CONTEXT file with the new decisions baked in (nurse still does full triage, quick-verify before Epic sync, no live vitals/monitoring, etc.). I’ve only changed what needed to change and tightened the clinical boundary.
-
-⸻
 
 TRIAGEDX – ER Walk-In Intake & Triage Accelerator
 
@@ -339,4 +336,3 @@ All stack, file structure, design system, testing, and future work sections rema
 
 ⸻
 
-If you want, next step I can turn this into a tight CONTEXT.md you can drop straight into Cursor, or a shorter “Pilot v12 – Cursor Prompt Header” version.
