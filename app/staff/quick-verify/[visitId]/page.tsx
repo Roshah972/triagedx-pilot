@@ -5,6 +5,12 @@ import { useParams, useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
 import styles from './page.module.css'
 
+interface EwsAssessment {
+  type: 'PROVISIONAL' | 'VERIFIED'
+  level: string
+  flags: any
+}
+
 interface VisitData {
   id: string
   patientProfile: {
@@ -17,11 +23,7 @@ interface VisitData {
     chiefComplaintCategory: string | null
     chiefComplaintText: string | null
   } | null
-  ewsAssessments: Array<{
-    type: string
-    level: string
-    flags: any
-  }>
+  ewsAssessments: EwsAssessment[]
 }
 
 export default function QuickVerifyPage() {
