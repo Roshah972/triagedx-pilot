@@ -6,7 +6,7 @@ import Logo from '@/components/Logo'
 import styles from './page.module.css'
 
 interface EwsAssessment {
-  type: 'PROVISIONAL' | 'VERIFIED'
+  type?: 'PROVISIONAL' | 'VERIFIED' | string
   level: string
   flags: any
 }
@@ -150,7 +150,8 @@ export default function QuickVerifyPage() {
     )
   }
 
-  const provisionalEws = visit.ewsAssessments.find((ews) => ews.type === 'PROVISIONAL')
+  // Safely get EWS assessment - handle case where type might not be in response
+  const provisionalEws = visit.ewsAssessments.find((ews) => ews.type === 'PROVISIONAL') || null
   const hasRedFlags = provisionalEws?.flags && Array.isArray(provisionalEws.flags) && provisionalEws.flags.length > 0
 
   return (
