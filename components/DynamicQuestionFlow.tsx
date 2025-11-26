@@ -219,7 +219,7 @@ export default function DynamicQuestionFlow({
     )
   }
 
-  const currentAnswer = flowState.answeredQuestions[currentQuestion.id]
+  const currentAnswer = flowState.answeredQuestions[currentQuestion.id] as string | number | boolean | undefined
 
   return (
     <div className={`${styles.questionFlow} ${accessibilityMode ? styles.accessibilityMode : ''}`}>

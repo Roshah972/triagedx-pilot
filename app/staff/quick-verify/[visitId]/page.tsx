@@ -18,6 +18,7 @@ interface VisitData {
     chiefComplaintText: string | null
   } | null
   ewsAssessments: Array<{
+    type: string
     level: string
     flags: any
   }>
