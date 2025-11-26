@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { EwsLevel, VisitStatus } from '@prisma/client'
 import Logo from '@/components/Logo'
+import { useTour } from '@/contexts/DemoTourContext'
 import styles from './page.module.css'
 
 interface WaitingRoomPatient {
@@ -70,6 +71,7 @@ type ComplaintFilter = typeof COMPLAINT_CATEGORIES[number]
 
 export default function StaffDashboard() {
   const router = useRouter()
+  const { startTour, isActive } = useTour()
   const [patients, setPatients] = useState<WaitingRoomPatient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -315,7 +317,7 @@ export default function StaffDashboard() {
 
   return (
     <div className={styles.dashboard}>
-      <header className={styles.header}>
+      <header className={styles.header} data-tour-id="nurse-console">
         <Logo size="medium" className={styles.headerLogo} />
         <div className={styles.headerContent}>
           <h1>Staff Dashboard - Waiting Room</h1>
@@ -332,6 +334,62 @@ export default function StaffDashboard() {
             </span>
           </div>
         </div>
+        {!isActive && (
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={() => router.push('/check-in')}
+              data-tour-id="checkin-entry"
+              style={{
+                padding: '8px 16px',
+                background: 'transparent',
+                color: 'var(--color-primary)',
+                border: '2px solid var(--color-primary)',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              New Check-In
+            </button>
+            <button
+              onClick={startTour}
+              style={{
+                padding: '8px 16px',
+                background: 'var(--color-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Start Demo Tour
+            </button>
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('triagedx_demo_seen')
+                  window.location.href = '/staff/dashboard?demo=1'
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                background: 'transparent',
+                color: 'var(--muted-foreground)',
+                border: '1px solid var(--border)',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+              title="Replay the demo tour"
+            >
+              Replay Demo
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Filters and Sorting */}
@@ -451,6 +509,7 @@ export default function StaffDashboard() {
             return (
               <div
                 key={patient.visitId}
+                data-tour-id={patient.visitId === 'new-patient' ? 'new-patient-highlight' : undefined}
                 className={`${styles.patientCard} ${
                   isLongWait ? styles.patientCardLongWait : ''
                 } ${styles.patientCardClickable}`}

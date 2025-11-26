@@ -47,7 +47,7 @@ export default function Home() {
         <section className={styles.cta}>
           <h2 className={styles.ctaTitle}>Ready to get started?</h2>
           <div className={styles.ctaButtons}>
-            <Link href="/check-in?mode=kiosk" className={styles.primaryButton}>
+            <Link href="/check-in?mode=kiosk" className={styles.primaryButton} data-tour-id="checkin-entry">
               Start Triage
             </Link>
             <Link href="/staff/dashboard" className={styles.secondaryButton}>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { IntakeSource, Sex } from '@prisma/client'
+import { useTour } from '@/contexts/DemoTourContext'
 import { getSymptomQuestions, getComplaintCategories } from '@/lib/config/symptomQuestions'
 import {
   getTranslations,
@@ -48,6 +49,7 @@ type Step = 'demographics' | 'complaint' | 'symptoms' | 'review'
 export default function CheckInPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { currentStep: tourStep, goToStep, nextStep: tourNextStep } = useTour()
   const isKioskMode = searchParams.get('mode') === 'kiosk'
 
   const [currentStep, setCurrentStep] = useState<Step>('demographics')
@@ -143,6 +145,16 @@ export default function CheckInPage() {
     }
   }
 
+  // Handle tour navigation
+  useEffect(() => {
+    if (tourStep === 'checkin-entry' && router) {
+      // If we're on checkin-entry step, navigate to check-in page
+      if (window.location.pathname !== '/check-in') {
+        router.push('/check-in')
+      }
+    }
+  }, [tourStep, router])
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
@@ -205,14 +217,26 @@ export default function CheckInPage() {
       const result = await response.json()
       setSubmitSuccess(true)
 
-      // Redirect after 3 seconds with visitId if available
-      setTimeout(() => {
-        const visitId = result.visitId || result.id || result.visit?.id
-        const redirectUrl = visitId 
-          ? `/check-in/success?visitId=${visitId}`
-          : '/check-in/success'
-        router.push(redirectUrl)
-      }, 3000)
+      // If in tour, advance to next step, then redirect
+      if (tourStep === 'checkin-submit') {
+        setTimeout(() => {
+          tourNextStep()
+          // Navigate to dashboard after tour step advances
+          setTimeout(() => {
+            const visitId = result.visitId || result.id || result.visit?.id
+            router.push('/staff/dashboard')
+          }, 500)
+        }, 1000)
+      } else {
+        // Normal redirect after 3 seconds
+        setTimeout(() => {
+          const visitId = result.visitId || result.id || result.visit?.id
+          const redirectUrl = visitId 
+            ? `/check-in/success?visitId=${visitId}`
+            : '/check-in/success'
+          router.push(redirectUrl)
+        }, 3000)
+      }
     } catch (error: any) {
       setSubmitError(error.message || 'An error occurred. Please try again.')
     } finally {
@@ -307,11 +331,11 @@ export default function CheckInPage() {
         </div>
 
         <Logo size="medium" className={styles.checkInLogo} />
-        <h1 className={styles.pageTitle}>{t.pageTitle}</h1>
+        <h1 className={styles.pageTitle} data-tour-id="checkin-overview">{t.pageTitle}</h1>
 
         {/* Step 1: Demographics */}
         {currentStep === 'demographics' && (
-          <div className={styles.stepContent}>
+          <div className={styles.stepContent} data-tour-id="checkin-demographics">
             <h2>{t.yourInformation}</h2>
             <div className={styles.formGroup}>
               <label htmlFor="firstName">
@@ -457,7 +481,7 @@ export default function CheckInPage() {
 
         {/* Step 2: Chief Complaint */}
         {currentStep === 'complaint' && (
-          <div className={styles.stepContent}>
+          <div className={styles.stepContent} data-tour-id="checkin-complaint">
             <h2>{t.whatBringsYouIn}</h2>
             <p className={styles.stepDescription}>
               {language === 'es'
@@ -485,7 +509,7 @@ export default function CheckInPage() {
 
         {/* Step 3: Symptom Questions - Dynamic Chip/Slide System */}
         {currentStep === 'symptoms' && (
-          <div className={styles.stepContent}>
+          <div className={styles.stepContent} data-tour-id="checkin-vitals">
             <h2>{t.additionalQuestions}</h2>
             <p className={styles.stepDescription}>{t.answerQuestions}</p>
 
@@ -646,8 +670,17 @@ export default function CheckInPage() {
           ) : (
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={async () => {
+                await handleSubmit()
+                // Auto-advance tour after successful submit
+                if (tourStep === 'checkin-submit') {
+                  setTimeout(() => {
+                    tourNextStep()
+                  }, 1000)
+                }
+              }}
               disabled={isSubmitting}
+              data-tour-id="checkin-submit"
               className={`${styles.navButton} ${styles.submitButton} ${
                 isKioskMode ? styles.kioskButton : ''
               } ${accessibilityMode ? styles.accessibilityButton : ''}`}

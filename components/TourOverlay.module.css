@@ -1,0 +1,265 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9998;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tourHighlight {
+  position: relative;
+  z-index: 9999 !important;
+  outline: 3px solid var(--color-primary) !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 4px rgba(88, 51, 255, 0.2), 0 0 20px rgba(88, 51, 255, 0.4) !important;
+  border-radius: 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(88, 51, 255, 0.2), 0 0 20px rgba(88, 51, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(88, 51, 255, 0.4), 0 0 30px rgba(88, 51, 255, 0.6);
+  }
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+  font-family: var(--font-sans);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 12px solid transparent;
+}
+
+.tooltip.arrow-top::before {
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: white;
+}
+
+.tooltip.arrow-bottom::before {
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: white;
+}
+
+.tooltip.arrow-left::before {
+  left: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: white;
+}
+
+.tooltip.arrow-right::before {
+  right: -24px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: white;
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.tooltipTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 12px 0;
+  padding-right: 32px;
+}
+
+.tooltipBody {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--foreground);
+  margin: 0 0 20px 0;
+}
+
+.tooltipActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.skipButton {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.skipButton:hover {
+  border-color: var(--muted-foreground);
+  color: var(--foreground);
+}
+
+.nextButton {
+  padding: 10px 24px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.nextButton:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 51, 255, 0.3);
+}
+
+.nextButton:active {
+  transform: translateY(0);
+}
+
+/* Full-screen intro overlay */
+.introOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.introContent {
+  background: white;
+  border-radius: 16px;
+  padding: 48px;
+  max-width: 600px;
+  margin: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+.introTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0 0 20px 0;
+  font-family: var(--font-sans);
+}
+
+.introBody {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--foreground);
+  margin: 0 0 32px 0;
+}
+
+.introActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.introButton {
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
+}
+
+.introButtonPrimary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.introButtonPrimary:hover {
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 51, 255, 0.3);
+}
+
+.introButtonSecondary {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 2px solid var(--border);
+}
+
+.introButtonSecondary:hover {
+  border-color: var(--muted-foreground);
+  color: var(--foreground);
+}
+

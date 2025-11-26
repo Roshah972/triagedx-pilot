@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import AuthGuard from '@/components/AuthGuard'
+import TourProviderWrapper from '@/components/TourProviderWrapper'
 
 export const metadata: Metadata = {
   title: 'TRIAGEDX - ER Walk-In Intake & Triage',
@@ -35,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthGuard>{children}</AuthGuard>
+        <AuthGuard>
+          <TourProviderWrapper>{children}</TourProviderWrapper>
+        </AuthGuard>
       </body>
     </html>
   )
