@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTour } from '@/contexts/DemoTourContext'
 import PilotFeedbackForm from '@/components/PilotFeedbackForm'
@@ -9,10 +9,17 @@ import styles from './page.module.css'
 
 export default function CheckInSuccessPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { currentStep: tourStep, isActive: tourActive, nextStep: tourNextStep } = useTour()
   const [showFeedback, setShowFeedback] = useState(false)
-  const visitId = searchParams.get('visitId')
+  
+  // Read search params client-side to avoid Suspense requirement
+  const [visitId, setVisitId] = useState<string | null>(null)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      setVisitId(params.get('visitId'))
+    }
+  }, [])
   
   // In demo mode, redirect to nurse console
   useEffect(() => {

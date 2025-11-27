@@ -10,7 +10,10 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: '/icon.svg',
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml', sizes: 'any' },
+    ],
     shortcut: '/icon.svg',
     apple: '/icon.svg',
   },
