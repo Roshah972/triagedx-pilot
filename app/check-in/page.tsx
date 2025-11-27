@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { IntakeSource, Sex } from '@prisma/client'
 import { useTour } from '@/contexts/DemoTourContext'
@@ -16,6 +16,7 @@ import { getTranslatedQuestionLabel } from '@/lib/i18n/symptomQuestionTranslatio
 import Logo from '@/components/Logo'
 import DynamicQuestionFlow from '@/components/DynamicQuestionFlow'
 import Chip from '@/components/Chip'
+import DemoGuide from '@/components/DemoGuide'
 import { calculateAge, calculateAgeBracket } from '@/lib/utils/age'
 import { mapOldComplaintCategory } from '@/lib/triage/complaintMapper'
 import { prismaSexToBiologicalSex } from '@/lib/triage/adapter'
@@ -182,13 +183,14 @@ export default function CheckInPage() {
     riskFactors: {},
   })
   
-  // Pre-fill form when tour starts on check-in page
+  // Pre-fill form when demo starts on check-in page
   useEffect(() => {
-    if (tourActive && tourStep === 'form-intro' && pathname === '/check-in') {
+    if (pathname === '/check-in' && !formData.firstName) {
+      // Auto-fill demo data when on check-in page
       setFormData(getDemoFormData())
       setCurrentStep('demographics')
     }
-  }, [tourActive, tourStep, pathname])
+  }, [pathname])
 
   const complaintCategories = getComplaintCategories()
   const symptomQuestions = formData.chiefComplaintCategory
@@ -247,12 +249,6 @@ export default function CheckInPage() {
   }
 
   const handleNext = () => {
-    // If in tour, advance tour step instead of form step
-    if (tourActive && tourStep) {
-      tourNextStep()
-      return
-    }
-    
     // Normal form navigation
     if (currentStep === 'demographics' && canProceedToRegistration()) {
       setCurrentStep('registration')
@@ -266,6 +262,27 @@ export default function CheckInPage() {
       setCurrentStep('review')
     }
   }
+
+  // Dispatch form step change event for demo guide
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('formStepChange', { 
+        detail: { step: currentStep } 
+      }))
+    }
+  }, [currentStep])
+
+  // Listen for next step from demo guide
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleNextFormStep = () => {
+        handleNext()
+      }
+      window.addEventListener('nextFormStep', handleNextFormStep)
+      return () => window.removeEventListener('nextFormStep', handleNextFormStep)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep])
 
   const handleBack = () => {
     if (currentStep === 'registration') {
@@ -431,12 +448,11 @@ export default function CheckInPage() {
 
       setSubmitSuccess(true)
 
-      // If in tour, advance to next step, then redirect
-      if (tourStep === 'form-submit') {
+      // In demo mode, redirect to nurse console
+      if (tourActive) {
         setTimeout(() => {
-          tourNextStep()
-          // Stay on page to show nurse console prompt
-        }, 1000)
+          router.push('/staff/dashboard?demo=complete')
+        }, 2000)
       } else {
         // Normal redirect after 3 seconds
         setTimeout(() => {
@@ -491,11 +507,13 @@ export default function CheckInPage() {
   }
 
   return (
-    <div
-      className={`${isKioskMode ? styles.kioskContainer : styles.mobileContainer} ${
-        accessibilityMode ? styles.accessibilityMode : ''
-      }`}
-    >
+    <>
+      <DemoGuide />
+      <div
+        className={`${isKioskMode ? styles.kioskContainer : styles.mobileContainer} ${
+          accessibilityMode ? styles.accessibilityMode : ''
+        }`}
+      >
       <div className={styles.checkInWrapper}>
         {/* Language and Accessibility Controls */}
         <div className={styles.controls}>
@@ -1439,6 +1457,7 @@ export default function CheckInPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
 

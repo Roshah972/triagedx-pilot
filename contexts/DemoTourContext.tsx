@@ -5,13 +5,14 @@ import { useRouter, usePathname } from 'next/navigation'
 
 export type TourStep = 
   | 'intro'
-  | 'form-intro'
   | 'form-demographics'
+  | 'form-registration'
+  | 'form-insurance'
   | 'form-complaint'
   | 'form-symptoms'
+  | 'form-review'
   | 'form-submit'
-  | 'nurse-console-prompt'
-  | 'nurse-console-view'
+  | 'nurse-console'
 
 interface TourContextType {
   isActive: boolean
@@ -65,13 +66,14 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
 
     const stepOrder: TourStep[] = [
       'intro',
-      'form-intro',
       'form-demographics',
+      'form-registration',
+      'form-insurance',
       'form-complaint',
       'form-symptoms',
+      'form-review',
       'form-submit',
-      'nurse-console-prompt',
-      'nurse-console-view',
+      'nurse-console',
     ]
 
     const currentIndex = stepOrder.indexOf(currentStep)
@@ -86,20 +88,24 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
     setCurrentStep(step)
   }, [])
 
-  // Check if demo should auto-start
+  // Auto-start demo on check-in page
   useEffect(() => {
-    const hasSeenDemo = typeof window !== 'undefined' 
-      ? localStorage.getItem('triagedx_demo_seen') === 'true'
-      : false
-
-    if (demoParam === '1' && !hasSeenDemo) {
-      // Small delay to ensure page is loaded
+    if (typeof window !== 'undefined' && pathname === '/check-in') {
+      // Always show demo on check-in page (no localStorage check)
       const timer = setTimeout(() => {
-        startTour()
-      }, 500)
+        if (!isActive) {
+          // Listen for start event from DemoGuide
+          const handleStart = () => {
+            startTour()
+            setCurrentStep('form-demographics')
+          }
+          window.addEventListener('startDemoTour', handleStart)
+          return () => window.removeEventListener('startDemoTour', handleStart)
+        }
+      }, 100)
       return () => clearTimeout(timer)
     }
-  }, [demoParam, startTour])
+  }, [pathname, isActive, startTour])
 
   // Handle ESC key to exit tour
   useEffect(() => {

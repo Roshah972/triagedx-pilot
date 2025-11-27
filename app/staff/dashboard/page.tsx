@@ -64,6 +64,8 @@ interface WaitingRoomResponse {
   count: number
 }
 
+const FEEDBACK_FORM_URL = 'https://docs.google.com/forms/d/1xQsMjHKglHnCrcd1IZ2DVJK3xEhoSpfIN8ACA3X2ZzU/edit'
+
 export default function StaffDashboard() {
   const router = useRouter()
   const [patients, setPatients] = useState<WaitingRoomPatient[]>([])
@@ -73,6 +75,7 @@ export default function StaffDashboard() {
   const [updatingStatus, setUpdatingStatus] = useState<Set<string>>(new Set())
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [pulsingCards, setPulsingCards] = useState<Set<string>>(new Set())
+  const [showDemoComplete, setShowDemoComplete] = useState(false)
 
   // Fetch waiting room data
   const fetchWaitingRoom = async () => {
@@ -376,6 +379,31 @@ export default function StaffDashboard() {
           </div>
         </div>
       </nav>
+
+      {/* Demo Completion Banner */}
+      {showDemoComplete && (
+        <div className={styles.demoBanner}>
+          <div className={styles.demoBannerContent}>
+            <h3>🎉 Demo Complete!</h3>
+            <p>Thank you for trying TRIAGEDX! Your feedback helps us improve.</p>
+            <a 
+              href={FEEDBACK_FORM_URL} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.feedbackButton}
+            >
+              Share Your Feedback
+            </a>
+            <button 
+              onClick={() => setShowDemoComplete(false)}
+              className={styles.closeBanner}
+              aria-label="Close banner"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid Layout */}
       <div className={styles.mainGrid}>

@@ -14,12 +14,14 @@ export default function CheckInSuccessPage() {
   const [showFeedback, setShowFeedback] = useState(false)
   const visitId = searchParams.get('visitId')
   
-  // If in tour, show nurse console prompt instead of feedback
+  // In demo mode, redirect to nurse console
   useEffect(() => {
-    if (tourActive && tourStep === 'nurse-console-prompt') {
-      setShowFeedback(false)
+    if (tourActive) {
+      setTimeout(() => {
+        router.push('/staff/dashboard?demo=complete')
+      }, 2000)
     }
-  }, [tourActive, tourStep])
+  }, [tourActive, router])
 
   // Auto-show feedback after 2 seconds
   useEffect(() => {
@@ -47,14 +49,10 @@ export default function CheckInSuccessPage() {
             Please wait in the waiting area. A nurse will call you shortly.
           </p>
           <div className={styles.actions}>
-            {tourActive && tourStep === 'nurse-console-prompt' ? (
+            {tourActive ? (
               <Link 
-                href="/staff/dashboard" 
+                href="/staff/dashboard?demo=complete" 
                 className={styles.button}
-                data-tour-id="nurse-console-prompt"
-                onClick={() => {
-                  setTimeout(() => tourNextStep(), 500)
-                }}
               >
                 Go to Nurse Console
               </Link>

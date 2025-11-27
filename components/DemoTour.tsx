@@ -45,12 +45,7 @@ const tourSteps: Record<string, {
     body: 'Once all information is collected, click Submit to create the patient record. The patient will then appear in your Nurse Console.',
     placement: 'top',
   },
-  'nurse-console-prompt': {
-    title: 'Go to Nurse Console',
-    body: 'After submitting, click the highlighted "Nurse Console" button to see the patient you just created. This is where you\'ll see all patients waiting for triage.',
-    placement: 'bottom',
-  },
-  'nurse-console-view': {
+  'nurse-console': {
     title: 'Nurse Console',
     body: 'Here you can see all patients who have checked in. Each card shows key information including the provisional Early Warning Score to help you prioritize. This completes the demo!',
     placement: 'bottom',
@@ -67,9 +62,9 @@ export default function DemoTour() {
     if (!isActive || !currentStep) return
 
     // Navigate to appropriate page for each step
-    if (currentStep === 'form-intro' && pathname !== '/check-in') {
+    if (currentStep === 'form-demographics' && pathname !== '/check-in') {
       router.push('/check-in')
-    } else if (currentStep === 'nurse-console-view' && pathname !== '/staff/dashboard') {
+    } else if (currentStep === 'nurse-console' && pathname !== '/staff/dashboard') {
       router.push('/staff/dashboard')
     }
   }, [currentStep, isActive, pathname, router])

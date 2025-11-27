@@ -219,7 +219,7 @@ export default function TourOverlay({ stepId, config, isActive }: TourOverlayPro
             </button>
           )}
           <button className={styles.nextButton} onClick={handleNext}>
-            {currentStep === 'nurse-console-view' ? 'Close' : 'Next'}
+            {currentStep === 'nurse-console' ? 'Close' : 'Next'}
           </button>
         </div>
       </div>
