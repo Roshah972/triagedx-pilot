@@ -416,11 +416,24 @@ export async function POST(request: NextRequest) {
     }
     
     // Check for Prisma connection errors
-    if (errorString.includes('prisma') || errorString.includes('database') || errorString.includes('connection')) {
+    const isConnectionError = 
+      errorString.includes('prisma') || 
+      errorString.includes('database') || 
+      errorString.includes('connection') ||
+      errorString.includes('P1001') || // Prisma connection error code
+      errorString.includes('P1002') || // Prisma connection timeout
+      errorString.includes('P1003') || // Prisma database does not exist
+      errorString.includes('ECONNREFUSED') ||
+      errorString.includes('ENOTFOUND')
+    
+    if (isConnectionError) {
+      console.error('Database connection error:', errorMessage)
       return NextResponse.json(
         { 
           error: 'Database connection error. Please try again.',
-          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+          details: process.env.NODE_ENV === 'development' 
+            ? `Connection failed: ${errorMessage}. Make sure PostgreSQL is running and DATABASE_URL is correct.`
+            : undefined
         },
         { status: 503 }
       )
