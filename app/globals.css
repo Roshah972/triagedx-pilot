@@ -23,6 +23,17 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-mono: 'Monaco', 'Courier New', 'Consolas', 'Menlo', monospace;
   
+  /* Dashboard Color Variables */
+  --navy: #0F1C2E;
+  --teal: #2BA8A4;
+  --soft-gray: #F2F4F7;
+  --white: #FFFFFF;
+  --red-alert: #DC2626;
+  --yellow-alert: #F59E0B;
+  --green-alert: #10B981;
+  --gray-text: #6B7280;
+  --gray-border: #E5E7EB;
+  
   /* Primary palette (calm violet/purple) */
   --color-primary: #5833ff;
   --color-secondary: #6B46FF;

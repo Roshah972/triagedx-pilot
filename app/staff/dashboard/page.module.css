@@ -1,17 +1,5 @@
 /* Nurse Dashboard v0 - Professional Medical UI */
-
-/* Color Variables */
-:root {
-  --navy: #0F1C2E;
-  --teal: #2BA8A4;
-  --soft-gray: #F2F4F7;
-  --white: #FFFFFF;
-  --red-alert: #DC2626;
-  --yellow-alert: #F59E0B;
-  --green-alert: #10B981;
-  --gray-text: #6B7280;
-  --gray-border: #E5E7EB;
-}
+/* Color variables are defined in globals.css */
 
 /* Dashboard Container */
 .dashboard {
