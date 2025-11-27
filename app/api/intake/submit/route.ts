@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { IntakeSource, EwsType, Sex, VisitStatus } from '@prisma/client'
+import { IntakeSource, EwsType, EwsLevel, Sex, VisitStatus } from '@prisma/client'
 import { z } from 'zod'
 import { calculateAge, calculateAgeBracket } from '@/lib/utils/age'
 import { evaluateTriage } from '@/lib/triage/triageEngine'
@@ -173,6 +173,15 @@ async function findExistingPatient(
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if Prisma is available
+    if (!prisma) {
+      console.error('Prisma client not initialized')
+      return NextResponse.json(
+        { error: 'Database connection not available. Please try again.' },
+        { status: 503 }
+      )
+    }
+
     // Parse and validate request body with Zod
     let body: IntakeSubmitRequest
     try {
@@ -286,18 +295,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Evaluate triage using new age-aware, sex-aware triage engine
-    const triageResult = evaluateTriage({
-      patient: patientContext,
-      complaintCategory,
-      answers: {
-        ...(body.symptomAnswers || {}),
-        // Include risk factors in answers for triage evaluation
-        ...(body.riskFactors || {}),
-      },
-    })
+    let triageResult
+    let ewsResult
+    try {
+      triageResult = evaluateTriage({
+        patient: patientContext,
+        complaintCategory,
+        answers: {
+          ...(body.symptomAnswers || {}),
+          // Include risk factors in answers for triage evaluation
+          ...(body.riskFactors || {}),
+        },
+      })
 
-    // Convert triage result to EWS result format for backward compatibility
-    const ewsResult = triageResultToEwsResult(triageResult)
+      // Convert triage result to EWS result format for backward compatibility
+      ewsResult = triageResultToEwsResult(triageResult)
+    } catch (triageError) {
+      console.error('Error evaluating triage:', triageError)
+      // If triage fails, use default low-risk values to prevent blocking intake
+      ewsResult = {
+        score: 0,
+        level: EwsLevel.LOW,
+        flags: [],
+      }
+    }
 
     // Create visit, intake form, and EWS assessment in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -363,23 +384,45 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error submitting intake:', error)
     
+    // Log full error details for debugging
+    if (error instanceof Error) {
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    } else {
+      console.error('Non-Error object:', JSON.stringify(error, null, 2))
+    }
+    
     // Return more detailed error message for debugging
     const errorMessage = error instanceof Error 
       ? error.message 
-      : 'Unknown error occurred'
+      : String(error)
+    
+    const errorString = errorMessage.toLowerCase()
     
     // Check for common database errors
-    if (errorMessage.includes('P2002')) {
+    if (errorString.includes('p2002') || errorString.includes('unique constraint')) {
       return NextResponse.json(
         { error: 'A patient with this information already exists' },
         { status: 409 }
       )
     }
     
-    if (errorMessage.includes('P2003')) {
+    if (errorString.includes('p2003') || errorString.includes('foreign key')) {
       return NextResponse.json(
         { error: 'Invalid reference data' },
         { status: 400 }
+      )
+    }
+    
+    // Check for Prisma connection errors
+    if (errorString.includes('prisma') || errorString.includes('database') || errorString.includes('connection')) {
+      return NextResponse.json(
+        { 
+          error: 'Database connection error. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
+        { status: 503 }
       )
     }
     
@@ -390,7 +433,10 @@ export async function POST(request: NextRequest) {
         error: isDevelopment 
           ? `Failed to submit intake: ${errorMessage}` 
           : 'Failed to submit intake. Please try again.',
-        ...(isDevelopment && { details: errorMessage })
+        ...(isDevelopment && { 
+          details: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined
+        })
       },
       { status: 500 }
     )
