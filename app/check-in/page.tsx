@@ -35,6 +35,16 @@ interface FormData {
   state: string
   zipCode: string
 
+  // Insurance Information
+  insuranceProvider: string
+  insuranceMemberId: string
+  insuranceGroupId: string
+  insuranceCardImage: File | null
+
+  // ID Document
+  idDocumentType: 'DRIVERS_LICENSE' | 'STATE_ID' | 'PASSPORT' | 'OTHER' | ''
+  idDocumentImage: File | null
+
   // Chief complaint
   chiefComplaintCategory: string
   chiefComplaintText: string
@@ -44,7 +54,7 @@ interface FormData {
   riskFactors: Record<string, any>
 }
 
-type Step = 'demographics' | 'complaint' | 'symptoms' | 'review'
+type Step = 'demographics' | 'registration' | 'complaint' | 'symptoms' | 'review'
 
 export default function CheckInPage() {
   const searchParams = useSearchParams()
@@ -73,6 +83,12 @@ export default function CheckInPage() {
     city: 'Springfield',
     state: 'IL',
     zipCode: '62701',
+    insuranceProvider: '',
+    insuranceMemberId: '',
+    insuranceGroupId: '',
+    insuranceCardImage: null,
+    idDocumentType: '',
+    idDocumentImage: null,
     chiefComplaintCategory: 'CHEST_PAIN',
     chiefComplaintText: 'Chest pain started 30 minutes ago',
     symptomAnswers: {
@@ -97,6 +113,12 @@ export default function CheckInPage() {
     city: '',
     state: '',
     zipCode: '',
+    insuranceProvider: '',
+    insuranceMemberId: '',
+    insuranceGroupId: '',
+    insuranceCardImage: null,
+    idDocumentType: '',
+    idDocumentImage: null,
     chiefComplaintCategory: '',
     chiefComplaintText: '',
     symptomAnswers: {},
@@ -141,13 +163,17 @@ export default function CheckInPage() {
     : null
 
   // Step validation
-  const canProceedToComplaint = () => {
+  const canProceedToRegistration = () => {
     return (
       formData.firstName.trim() !== '' &&
       formData.lastName.trim() !== '' &&
       formData.dob !== '' &&
       formData.sex !== ''
     )
+  }
+
+  const canProceedToComplaint = () => {
+    return true // Registration fields are optional
   }
 
   const canProceedToSymptoms = () => {
@@ -166,7 +192,9 @@ export default function CheckInPage() {
     }
     
     // Normal form navigation
-    if (currentStep === 'demographics' && canProceedToComplaint()) {
+    if (currentStep === 'demographics' && canProceedToRegistration()) {
+      setCurrentStep('registration')
+    } else if (currentStep === 'registration' && canProceedToComplaint()) {
       setCurrentStep('complaint')
     } else if (currentStep === 'complaint' && canProceedToSymptoms()) {
       setCurrentStep('symptoms')
@@ -176,8 +204,10 @@ export default function CheckInPage() {
   }
 
   const handleBack = () => {
-    if (currentStep === 'complaint') {
+    if (currentStep === 'registration') {
       setCurrentStep('demographics')
+    } else if (currentStep === 'complaint') {
+      setCurrentStep('registration')
     } else if (currentStep === 'symptoms') {
       setCurrentStep('complaint')
     } else if (currentStep === 'review') {
@@ -218,21 +248,38 @@ export default function CheckInPage() {
 
       // Prepare payload, converting empty strings to null for optional fields
       const payload: any = {
-        firstName: formData.firstName,
-        lastName: formData.lastName || null,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim() || null,
         dob: dobISO,
         sex: formData.sex || null,
-        phone: formData.phone || null,
-        email: formData.email || null,
-        addressLine1: formData.addressLine1 || null,
-        city: formData.city || null,
-        state: formData.state || null,
-        zipCode: formData.zipCode || null,
+        phone: formData.phone.trim() || null,
+        email: formData.email.trim() || null,
+        addressLine1: formData.addressLine1.trim() || null,
+        city: formData.city.trim() || null,
+        state: formData.state.trim() || null,
+        zipCode: formData.zipCode.trim() || null,
         chiefComplaintCategory: formData.chiefComplaintCategory || null,
-        chiefComplaintText: formData.chiefComplaintText || null,
+        chiefComplaintText: formData.chiefComplaintText.trim() || null,
         symptomAnswers: Object.keys(formData.symptomAnswers).length > 0 ? formData.symptomAnswers : null,
         riskFactors: Object.keys(formData.riskFactors).length > 0 ? formData.riskFactors : null,
         intakeSource: isKioskMode ? IntakeSource.KIOSK : IntakeSource.MOBILE,
+        // Note: Insurance and ID data will be handled via separate file upload API endpoints
+        // For now, these fields are collected but not sent to prevent API errors
+      }
+
+      // Validate required fields before submission
+      if (!payload.firstName) {
+        throw new Error('First name is required')
+      }
+      // API requires lastName for MOBILE and KIOSK modes
+      if (!payload.lastName) {
+        throw new Error('Last name is required')
+      }
+      if (!payload.dob) {
+        throw new Error('Date of birth is required')
+      }
+      if (!payload.sex) {
+        throw new Error('Sex is required')
       }
 
       const response = await fetch('/api/intake/submit', {
@@ -242,19 +289,28 @@ export default function CheckInPage() {
       })
 
       if (!response.ok) {
-        let errorMessage = 'Failed to submit intake'
+        let errorMessage = 'Failed to submit intake. Please try again.'
         try {
           const error = await response.json()
+          console.error('Intake submission error response:', error)
+          
           // Show validation details if available
           if (error.details && Array.isArray(error.details)) {
-            const errorMessages = error.details.map((d: any) => `${d.field}: ${d.message}`).join(', ')
-            errorMessage = error.error + ': ' + errorMessages
+            const errorMessages = error.details.map((d: any) => {
+              const fieldLabel = d.field === 'lastName' ? 'Last name' :
+                                d.field === 'dob' ? 'Date of birth' :
+                                d.field === 'sex' ? 'Sex' :
+                                d.field
+              return `${fieldLabel}: ${d.message}`
+            }).join('\n')
+            errorMessage = (error.error || 'Validation failed') + ':\n' + errorMessages
           } else if (error.error) {
             errorMessage = error.error
           }
         } catch (e) {
           // If response is not JSON, use status text
-          errorMessage = `Failed to submit intake (${response.status}: ${response.statusText})`
+          console.error('Failed to parse error response:', e)
+          errorMessage = `Failed to submit intake (${response.status}: ${response.statusText}). Please check your connection and try again.`
         }
         console.error('Intake submission error:', errorMessage)
         throw new Error(errorMessage)
@@ -288,6 +344,10 @@ export default function CheckInPage() {
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleFileUpload = (field: 'insuranceCardImage' | 'idDocumentImage', file: File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: file }))
   }
 
   const updateSymptomAnswer = (questionId: string, value: any) => {
@@ -521,7 +581,145 @@ export default function CheckInPage() {
           </div>
         )}
 
-        {/* Step 2: Chief Complaint */}
+        {/* Step 2: Registration (Insurance & ID) */}
+        {currentStep === 'registration' && (
+          <div className={styles.stepContent}>
+            <h2>{language === 'es' ? 'Información de Registro' : 'Registration Information'}</h2>
+            <p className={styles.stepDescription}>
+              {language === 'es'
+                ? 'Proporcione información de seguro e identificación (opcional)'
+                : 'Please provide insurance and identification information (optional)'}
+            </p>
+
+            {/* Insurance Information */}
+            <div className={styles.formSection}>
+              <h3>{language === 'es' ? 'Información del Seguro' : 'Insurance Information'}</h3>
+              <div className={styles.formGroup}>
+                <label htmlFor="insuranceProvider">
+                  {language === 'es' ? 'Compañía de Seguro' : 'Insurance Provider'}
+                </label>
+                <input
+                  id="insuranceProvider"
+                  type="text"
+                  value={formData.insuranceProvider}
+                  onChange={(e) => updateFormData('insuranceProvider', e.target.value)}
+                  placeholder={language === 'es' ? 'Ej: Blue Cross Blue Shield' : 'e.g., Blue Cross Blue Shield'}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="insuranceMemberId">
+                  {language === 'es' ? 'ID de Miembro' : 'Member ID'}
+                </label>
+                <input
+                  id="insuranceMemberId"
+                  type="text"
+                  value={formData.insuranceMemberId}
+                  onChange={(e) => updateFormData('insuranceMemberId', e.target.value)}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="insuranceGroupId">
+                  {language === 'es' ? 'Número de Grupo' : 'Group Number'}
+                </label>
+                <input
+                  id="insuranceGroupId"
+                  type="text"
+                  value={formData.insuranceGroupId}
+                  onChange={(e) => updateFormData('insuranceGroupId', e.target.value)}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="insuranceCardImage">
+                  {language === 'es' ? 'Foto de Tarjeta de Seguro' : 'Insurance Card Photo'}
+                </label>
+                <input
+                  id="insuranceCardImage"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null
+                    handleFileUpload('insuranceCardImage', file)
+                  }}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                />
+                {formData.insuranceCardImage && (
+                  <div className={styles.filePreview}>
+                    {language === 'es' ? 'Archivo seleccionado:' : 'File selected:'} {formData.insuranceCardImage.name}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ID Document */}
+            <div className={styles.formSection}>
+              <h3>{language === 'es' ? 'Identificación' : 'Identification'}</h3>
+              <div className={styles.formGroup}>
+                <label htmlFor="idDocumentType">
+                  {language === 'es' ? 'Tipo de Identificación' : 'ID Type'}
+                </label>
+                <select
+                  id="idDocumentType"
+                  value={formData.idDocumentType}
+                  onChange={(e) => updateFormData('idDocumentType', e.target.value)}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                >
+                  <option value="">{language === 'es' ? 'Seleccionar' : 'Select'}</option>
+                  <option value="DRIVERS_LICENSE">
+                    {language === 'es' ? 'Licencia de Conducir' : 'Driver\'s License'}
+                  </option>
+                  <option value="STATE_ID">
+                    {language === 'es' ? 'ID Estatal' : 'State ID'}
+                  </option>
+                  <option value="PASSPORT">
+                    {language === 'es' ? 'Pasaporte' : 'Passport'}
+                  </option>
+                  <option value="OTHER">
+                    {language === 'es' ? 'Otro' : 'Other'}
+                  </option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="idDocumentImage">
+                  {language === 'es' ? 'Foto de Identificación' : 'ID Photo'}
+                </label>
+                <input
+                  id="idDocumentImage"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null
+                    handleFileUpload('idDocumentImage', file)
+                  }}
+                  className={`${isKioskMode ? styles.kioskInput : ''} ${
+                    accessibilityMode ? styles.accessibilityInput : ''
+                  }`}
+                />
+                {formData.idDocumentImage && (
+                  <div className={styles.filePreview}>
+                    {language === 'es' ? 'Archivo seleccionado:' : 'File selected:'} {formData.idDocumentImage.name}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Chief Complaint */}
         {currentStep === 'complaint' && (
           <div className={styles.stepContent} data-tour-id="form-complaint">
             <h2>{t.whatBringsYouIn}</h2>
@@ -549,7 +747,7 @@ export default function CheckInPage() {
           </div>
         )}
 
-        {/* Step 3: Symptom Questions - Dynamic Chip/Slide System */}
+        {/* Step 4: Symptom Questions - Dynamic Chip/Slide System */}
         {currentStep === 'symptoms' && (
           <div className={styles.stepContent} data-tour-id="form-symptoms">
             <h2>{t.additionalQuestions}</h2>
@@ -619,7 +817,7 @@ export default function CheckInPage() {
           </div>
         )}
 
-        {/* Step 4: Review */}
+        {/* Step 5: Review */}
         {currentStep === 'review' && (
           <div className={styles.stepContent}>
             <h2>{t.reviewYourInformation}</h2>
@@ -699,7 +897,8 @@ export default function CheckInPage() {
               type="button"
               onClick={handleNext}
               disabled={
-                (currentStep === 'demographics' && !canProceedToComplaint()) ||
+                (currentStep === 'demographics' && !canProceedToRegistration()) ||
+                (currentStep === 'registration' && !canProceedToComplaint()) ||
                 (currentStep === 'complaint' && !canProceedToSymptoms()) ||
                 (currentStep === 'symptoms' && !canProceedToReview())
               }

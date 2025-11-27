@@ -221,6 +221,34 @@
   }
 }
 
+.formSection {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.formSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.formSection h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
+
+.filePreview {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-cloud);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
 /* Yes/No buttons - larger for mobile */
 .yesnoButtons {
   display: grid;
