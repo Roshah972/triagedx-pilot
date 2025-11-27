@@ -8,7 +8,10 @@ import styles from './page.module.css'
 
 export default function Home() {
   const router = useRouter()
-  const { startTour, isActive } = useTour()
+  // Always call useTour unconditionally - it returns safe defaults if context is unavailable
+  const tour = useTour()
+  const { startTour, isActive } = tour
+  
   return (
     <main className={styles.container}>
       <div className={styles.content}>

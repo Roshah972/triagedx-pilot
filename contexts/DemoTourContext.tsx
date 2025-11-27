@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 export type TourStep = 
   | 'intro'
@@ -27,33 +27,38 @@ const TourContext = createContext<TourContextType | undefined>(undefined)
 export function DemoTourProvider({ children }: { children: React.ReactNode }) {
   const [isActive, setIsActive] = useState(false)
   const [currentStep, setCurrentStep] = useState<TourStep | null>(null)
-  const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
-
-  // Check if demo should auto-start
+  
+  // Use window.location to read search params to avoid Suspense requirement
+  const [demoParam, setDemoParam] = useState<string | null>(null)
+  
   useEffect(() => {
-    const demoParam = searchParams.get('demo')
-    const hasSeenDemo = typeof window !== 'undefined' 
-      ? localStorage.getItem('triagedx_demo_seen') === 'true'
-      : false
-
-    if (demoParam === '1') {
-      // Small delay to ensure page is loaded
-      setTimeout(() => {
-        startTour()
-      }, 500)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      setDemoParam(params.get('demo'))
     }
-  }, [searchParams])
+  }, [pathname])
+
+  const endTour = useCallback(() => {
+    setIsActive(false)
+    setCurrentStep(null)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('triagedx_demo_seen', 'true')
+    }
+  }, [])
 
   const startTour = useCallback(() => {
     setIsActive(true)
     setCurrentStep('intro')
     // Remove demo param from URL but keep it in history
-    if (searchParams.get('demo') === '1') {
-      router.replace(pathname, { scroll: false })
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('demo') === '1') {
+        router.replace(pathname, { scroll: false })
+      }
     }
-  }, [router, pathname, searchParams])
+  }, [router, pathname])
 
   const nextStep = useCallback(() => {
     if (!currentStep) return
@@ -75,19 +80,26 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
     } else {
       endTour()
     }
-  }, [currentStep])
+  }, [currentStep, endTour])
 
   const goToStep = useCallback((step: TourStep) => {
     setCurrentStep(step)
   }, [])
 
-  const endTour = useCallback(() => {
-    setIsActive(false)
-    setCurrentStep(null)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('triagedx_demo_seen', 'true')
+  // Check if demo should auto-start
+  useEffect(() => {
+    const hasSeenDemo = typeof window !== 'undefined' 
+      ? localStorage.getItem('triagedx_demo_seen') === 'true'
+      : false
+
+    if (demoParam === '1' && !hasSeenDemo) {
+      // Small delay to ensure page is loaded
+      const timer = setTimeout(() => {
+        startTour()
+      }, 500)
+      return () => clearTimeout(timer)
     }
-  }, [])
+  }, [demoParam, startTour])
 
   // Handle ESC key to exit tour
   useEffect(() => {
@@ -119,7 +131,15 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
 export function useTour() {
   const context = useContext(TourContext)
   if (context === undefined) {
-    throw new Error('useTour must be used within a DemoTourProvider')
+    // Return default values instead of throwing - prevents hook order issues
+    return {
+      isActive: false,
+      currentStep: null,
+      startTour: () => {},
+      nextStep: () => {},
+      endTour: () => {},
+      goToStep: () => {},
+    }
   }
   return context
 }

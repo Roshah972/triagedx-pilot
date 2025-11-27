@@ -6,13 +6,13 @@ import TourProviderWrapper from '@/components/TourProviderWrapper'
 export const metadata: Metadata = {
   title: 'TRIAGEDX - ER Walk-In Intake & Triage',
   description: 'Emergency Department intake and triage accelerator',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'TRIAGEDX',
-  },
   formatDetection: {
     telephone: false,
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
   },
 }
 
@@ -36,9 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthGuard>
-          <TourProviderWrapper>{children}</TourProviderWrapper>
-        </AuthGuard>
+        <TourProviderWrapper>
+          <AuthGuard>{children}</AuthGuard>
+        </TourProviderWrapper>
       </body>
     </html>
   )
