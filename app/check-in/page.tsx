@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { IntakeSource, Sex } from '@prisma/client'
 import { useTour } from '@/contexts/DemoTourContext'
 import { getSymptomQuestions, getComplaintCategories } from '@/lib/config/symptomQuestions'
@@ -77,11 +77,18 @@ interface FormData {
 type Step = 'demographics' | 'registration' | 'insurance' | 'complaint' | 'symptoms' | 'review'
 
 export default function CheckInPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
   const { currentStep: tourStep, goToStep, nextStep: tourNextStep, isActive: tourActive } = useTour()
-  const isKioskMode = searchParams.get('mode') === 'kiosk'
+  
+  // Read search params client-side to avoid Suspense requirement
+  const [isKioskMode, setIsKioskMode] = useState(false)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      setIsKioskMode(params.get('mode') === 'kiosk')
+    }
+  }, [])
 
   const [currentStep, setCurrentStep] = useState<Step>('demographics')
   const [isSubmitting, setIsSubmitting] = useState(false)
