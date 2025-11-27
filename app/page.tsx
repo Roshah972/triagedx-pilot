@@ -53,21 +53,13 @@ export default function Home() {
         <section className={styles.cta}>
           <h2 className={styles.ctaTitle}>Ready to get started?</h2>
           {!isActive && (
-            <div style={{
-              marginBottom: '24px',
-              display: 'flex',
-              justifyContent: 'center',
-            }}>
+            <div className={styles.ctaButtons} style={{ marginBottom: '1.5rem' }}>
               <button
                 onClick={() => {
                   router.push('/staff/dashboard')
                   setTimeout(() => startTour(), 500)
                 }}
                 className={styles.primaryButton}
-                style={{
-                  fontSize: '1.125rem',
-                  padding: '1rem 2.5rem',
-                }}
               >
                 START DEMO
               </button>
