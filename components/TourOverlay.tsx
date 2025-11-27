@@ -114,8 +114,45 @@ export default function TourOverlay({ stepId, config, isActive }: TourOverlayPro
     if (!config.allowInteraction) {
       e.preventDefault()
       e.stopPropagation()
+      // Prevent all clicks outside highlighted area
+      return false
     }
   }
+
+  // Freeze interactions on non-highlighted elements
+  useEffect(() => {
+    if (!isActive || config.allowInteraction) return
+
+    const preventInteraction = (e: Event) => {
+      const target = e.target as HTMLElement
+      if (targetElementRef.current && !targetElementRef.current.contains(target)) {
+        // Check if click is on tooltip or backdrop
+        const tooltip = tooltipRef.current
+        if (tooltip && !tooltip.contains(target)) {
+          e.preventDefault()
+          e.stopPropagation()
+          e.stopImmediatePropagation()
+        }
+      }
+    }
+
+    // Prevent clicks, touches, and keyboard interactions
+    document.addEventListener('click', preventInteraction, true)
+    document.addEventListener('touchstart', preventInteraction, true)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        const target = e.target as HTMLElement
+        if (targetElementRef.current && !targetElementRef.current.contains(target)) {
+          e.preventDefault()
+        }
+      }
+    }, true)
+
+    return () => {
+      document.removeEventListener('click', preventInteraction, true)
+      document.removeEventListener('touchstart', preventInteraction, true)
+    }
+  }, [isActive, config.allowInteraction])
 
   const handleNext = () => {
     // If this is the checkin-entry step and target is clickable, allow click through
@@ -147,12 +184,13 @@ export default function TourOverlay({ stepId, config, isActive }: TourOverlayPro
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - Freeze frame effect */}
       <div
         className={styles.backdrop}
         onClick={handleBackdropClick}
         style={{
           pointerEvents: config.allowInteraction ? 'none' : 'auto',
+          cursor: config.allowInteraction ? 'default' : 'not-allowed',
         }}
       />
 

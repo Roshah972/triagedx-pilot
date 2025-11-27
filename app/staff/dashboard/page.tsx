@@ -335,16 +335,16 @@ export default function StaffDashboard() {
           </div>
         </div>
         {!isActive && (
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button
               onClick={() => router.push('/check-in')}
               data-tour-id="checkin-entry"
               style={{
-                padding: '8px 16px',
+                padding: '10px 20px',
                 background: 'transparent',
                 color: 'var(--color-primary)',
                 border: '2px solid var(--color-primary)',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 fontSize: '14px',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -355,38 +355,29 @@ export default function StaffDashboard() {
             <button
               onClick={startTour}
               style={{
-                padding: '8px 16px',
+                padding: '16px 32px',
                 background: 'var(--color-primary)',
                 color: 'white',
                 border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '600',
+                borderRadius: '12px',
+                fontSize: '18px',
+                fontWeight: '700',
                 cursor: 'pointer',
+                boxShadow: '0 4px 20px rgba(88, 51, 255, 0.4)',
+                transition: 'all 0.3s',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 6px 25px rgba(88, 51, 255, 0.5)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(88, 51, 255, 0.4)'
               }}
             >
-              Start Demo Tour
-            </button>
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  localStorage.removeItem('triagedx_demo_seen')
-                  window.location.href = '/staff/dashboard?demo=1'
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                background: 'transparent',
-                color: 'var(--muted-foreground)',
-                border: '1px solid var(--border)',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: '500',
-                cursor: 'pointer',
-              }}
-              title="Replay the demo tour"
-            >
-              Replay Demo
+              🎯 START DEMO
             </button>
           </div>
         )}

@@ -1,8 +1,14 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
+import { useTour } from '@/contexts/DemoTourContext'
 import styles from './page.module.css'
 
 export default function Home() {
+  const router = useRouter()
+  const { startTour, isActive } = useTour()
   return (
     <main className={styles.container}>
       <div className={styles.content}>
@@ -46,6 +52,45 @@ export default function Home() {
         {/* Call to Action */}
         <section className={styles.cta}>
           <h2 className={styles.ctaTitle}>Ready to get started?</h2>
+          {!isActive && (
+            <div style={{
+              marginBottom: '24px',
+              display: 'flex',
+              justifyContent: 'center',
+            }}>
+              <button
+                onClick={() => {
+                  router.push('/staff/dashboard')
+                  setTimeout(() => startTour(), 500)
+                }}
+                style={{
+                  padding: '20px 48px',
+                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '16px',
+                  fontSize: '24px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 30px rgba(88, 51, 255, 0.5)',
+                  transition: 'all 0.3s',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)'
+                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(88, 51, 255, 0.6)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)'
+                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(88, 51, 255, 0.5)'
+                }}
+              >
+                🎯 START DEMO TOUR
+              </button>
+            </div>
+          )}
           <div className={styles.ctaButtons}>
             <Link href="/check-in?mode=kiosk" className={styles.primaryButton} data-tour-id="checkin-entry">
               Start Triage

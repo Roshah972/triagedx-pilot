@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { useTour } from '@/contexts/DemoTourContext'
+import { useTour, type TourStep } from '@/contexts/DemoTourContext'
 import TourOverlay from './TourOverlay'
 import styles from './TourOverlay.module.css'
 
@@ -91,6 +91,31 @@ export default function DemoTour() {
       router.push('/staff/dashboard')
     }
   }, [currentStep, isActive, pathname, router])
+
+  // Auto-advance certain steps after delay
+  useEffect(() => {
+    if (!isActive || !currentStep) return
+
+    let timeoutId: NodeJS.Timeout
+
+    // Auto-advance intro after showing it (user can still click)
+    if (currentStep === 'intro') {
+      // Don't auto-advance intro - wait for user click
+      return
+    }
+
+    // Auto-advance informational steps after 5 seconds
+    const autoAdvanceSteps: TourStep[] = ['nurse-console', 'checkin-overview']
+    if (autoAdvanceSteps.includes(currentStep)) {
+      timeoutId = setTimeout(() => {
+        nextStep()
+      }, 5000) // 5 seconds
+    }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [currentStep, isActive, nextStep])
 
   if (!isActive || !currentStep) return null
 
