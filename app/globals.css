@@ -1,3 +1,6 @@
+/* Import Inter font with display swap for performance - MUST be at top */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -12,9 +15,6 @@ body {
   /* iOS safe area support */
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-
-/* Import Inter font with display swap for performance */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* Design System - Professional Medical App Styling */
 :root {
