@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
       include: {
         patientProfile: {
           include: {
-            insuranceProfiles: {
+            insurancePolicies: {
               where: { isPrimary: true },
               take: 1,
             },
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
 
       // Determine verification status
       const hasIdDocument = visit.patientProfile.idDocuments.length > 0
-      const hasInsurance = visit.patientProfile.insuranceProfiles.length > 0
+      const hasInsurance = visit.patientProfile.insurancePolicies.length > 0
       const isEpicSynced = visit.epicEncounterId !== null
 
       return {

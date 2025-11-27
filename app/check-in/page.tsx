@@ -125,7 +125,6 @@ export default function CheckInPage() {
     cardFrontImageUrl: null,
     cardBackImageUrl: null,
     wantsFinancialAssistance: false,
-    insuranceCardImage: null,
     idDocumentType: '',
     idDocumentImage: null,
     chiefComplaintCategory: 'CHEST_PAIN',
@@ -175,7 +174,6 @@ export default function CheckInPage() {
     cardFrontImageUrl: null,
     cardBackImageUrl: null,
     wantsFinancialAssistance: false,
-    insuranceCardImage: null,
     idDocumentType: '',
     idDocumentImage: null,
     chiefComplaintCategory: '',
@@ -331,30 +329,6 @@ export default function CheckInPage() {
         symptomAnswers: Object.keys(formData.symptomAnswers).length > 0 ? formData.symptomAnswers : null,
         riskFactors: Object.keys(formData.riskFactors).length > 0 ? formData.riskFactors : null,
         intakeSource: isKioskMode ? IntakeSource.KIOSK : IntakeSource.MOBILE,
-          // Submit insurance information if provided
-          if (formData.insuranceStatus && formData.insuranceStatus !== '') {
-            try {
-              const insurancePayload: any = {
-                insuranceStatus: formData.insuranceStatus,
-                insuranceCarrierName: formData.insuranceCarrierName || null,
-                planName: formData.planName || null,
-                policyId: formData.policyId || null,
-                groupNumber: formData.groupNumber || null,
-                planType: formData.planType || null,
-                subscriberIsPatient: formData.subscriberIsPatient,
-                subscriberFullName: formData.subscriberIsPatient ? null : (formData.subscriberFullName || null),
-                subscriberDOB: formData.subscriberIsPatient ? null : (formData.subscriberDOB ? new Date(formData.subscriberDOB).toISOString() : null),
-                subscriberRelationshipToPatient: formData.subscriberIsPatient ? null : (formData.subscriberRelationshipToPatient || null),
-                subscriberEmployerName: formData.subscriberEmployerName || null,
-                guarantorIsSubscriber: formData.guarantorIsSubscriber,
-                guarantorFullName: formData.guarantorIsSubscriber ? null : (formData.guarantorFullName || null),
-                guarantorRelationshipToPatient: formData.guarantorIsSubscriber ? null : (formData.guarantorRelationshipToPatient || null),
-                guarantorAddressLine1: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine1 || null),
-                guarantorAddressLine2: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine2 || null),
-                guarantorCity: formData.guarantorIsSubscriber ? null : (formData.guarantorCity || null),
-                guarantorState: formData.guarantorIsSubscriber ? null : (formData.guarantorState || null),
-                guarantorZip: formData.guarantorIsSubscriber ? null : (formData.guarantorZip || null),
-                guarantorPhoneNumber: formData.guarantorIsSubscriber ? null : (formData.guarantorPhoneNumber || null),
       }
 
       // Validate required fields before submission
@@ -410,7 +384,7 @@ export default function CheckInPage() {
       const visitId = result.visitId || result.id || result.visit?.id
 
       // Submit insurance information if provided (after visit is created)
-      if (visitId && formData.insuranceStatus && formData.insuranceStatus !== '') {
+      if (visitId && formData.insuranceStatus) {
         try {
           const insurancePayload: any = {
             insuranceStatus: formData.insuranceStatus,
@@ -483,7 +457,7 @@ export default function CheckInPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleFileUpload = (field: 'insuranceCardImage' | 'idDocumentImage', file: File | null) => {
+  const handleFileUpload = (field: 'idDocumentImage', file: File | null) => {
     setFormData((prev) => ({ ...prev, [field]: file }))
   }
 

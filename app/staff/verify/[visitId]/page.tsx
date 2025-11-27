@@ -26,7 +26,7 @@ interface VisitData {
     state: string | null
     zipCode: string | null
     epicPatientId: string | null
-    insuranceProfiles: Array<{
+    insurancePolicies: Array<{
       id: string
       providerName: string | null
       memberId: string | null
@@ -208,7 +208,7 @@ export default function VerifyPage() {
   }
 
   const hasIdDocument = visit.patientProfile.idDocuments.length > 0
-  const hasInsurance = visit.patientProfile.insuranceProfiles.length > 0
+  const hasInsurance = visit.patientProfile.insurancePolicies.length > 0
   const isEpicSynced = visit.epicEncounterId !== null
 
   const getEwsBadgeClass = (level: string) => {
@@ -463,7 +463,7 @@ export default function VerifyPage() {
           <h2>Insurance Information</h2>
           {hasInsurance ? (
             <div className={styles.insuranceList}>
-              {visit.patientProfile.insuranceProfiles.map((insurance) => (
+              {visit.patientProfile.insurancePolicies.map((insurance) => (
                 <div key={insurance.id} className={styles.insuranceCard}>
                   <div className={styles.infoGrid}>
                     <div className={styles.infoRow}>

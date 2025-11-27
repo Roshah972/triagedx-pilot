@@ -27,7 +27,7 @@ export async function POST(
       include: {
         patientProfile: {
           include: {
-            insuranceProfiles: true,
+            insurancePolicies: true,
             idDocuments: true,
           },
         },

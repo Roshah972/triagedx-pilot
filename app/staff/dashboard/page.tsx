@@ -206,7 +206,7 @@ export default function StaffDashboard() {
           : null,
         verification: {
           idVerified: visit.patientProfile.idDocuments?.length > 0 || false,
-          insuranceVerified: visit.patientProfile.insuranceProfiles?.length > 0 || false,
+          insuranceVerified: visit.patientProfile.insurancePolicies?.length > 0 || false,
           epicSynced: visit.epicEncounterId !== null,
         },
         vitals: visit.vitals && visit.vitals.length > 0
