@@ -19,9 +19,14 @@ export async function GET(
       include: {
         patientProfile: {
           include: {
-            insuranceProfiles: true,
+            insurancePolicies: {
+              orderBy: { isPrimary: 'desc' },
+            },
             idDocuments: true,
           },
+        },
+        insurancePolicies: {
+          orderBy: { isPrimary: 'desc' },
         },
         intakeForm: true,
         ewsAssessments: {

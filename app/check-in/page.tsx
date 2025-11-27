@@ -36,10 +36,29 @@ interface FormData {
   zipCode: string
 
   // Insurance Information
-  insuranceProvider: string
-  insuranceMemberId: string
-  insuranceGroupId: string
-  insuranceCardImage: File | null
+  insuranceStatus: 'HAS_INSURANCE' | 'SELF_PAY' | 'UNKNOWN' | ''
+  insuranceCarrierName: string
+  planName: string
+  policyId: string
+  groupNumber: string
+  planType: 'PPO' | 'HMO' | 'EPO' | 'POS' | 'MEDICARE' | 'MEDICAID' | 'TRICARE' | 'OTHER' | ''
+  subscriberIsPatient: boolean
+  subscriberFullName: string
+  subscriberDOB: string
+  subscriberRelationshipToPatient: 'SELF' | 'PARENT' | 'SPOUSE' | 'CHILD' | 'OTHER' | ''
+  subscriberEmployerName: string
+  guarantorIsSubscriber: boolean
+  guarantorFullName: string
+  guarantorRelationshipToPatient: 'SELF' | 'PARENT' | 'SPOUSE' | 'CHILD' | 'OTHER' | ''
+  guarantorAddressLine1: string
+  guarantorAddressLine2: string
+  guarantorCity: string
+  guarantorState: string
+  guarantorZip: string
+  guarantorPhoneNumber: string
+  cardFrontImageUrl: string | null
+  cardBackImageUrl: string | null
+  wantsFinancialAssistance: boolean
 
   // ID Document
   idDocumentType: 'DRIVERS_LICENSE' | 'STATE_ID' | 'PASSPORT' | 'OTHER' | ''
@@ -54,7 +73,7 @@ interface FormData {
   riskFactors: Record<string, any>
 }
 
-type Step = 'demographics' | 'registration' | 'complaint' | 'symptoms' | 'review'
+type Step = 'demographics' | 'registration' | 'insurance' | 'complaint' | 'symptoms' | 'review'
 
 export default function CheckInPage() {
   const searchParams = useSearchParams()
@@ -83,9 +102,29 @@ export default function CheckInPage() {
     city: 'Springfield',
     state: 'IL',
     zipCode: '62701',
-    insuranceProvider: '',
-    insuranceMemberId: '',
-    insuranceGroupId: '',
+    insuranceStatus: 'HAS_INSURANCE',
+    insuranceCarrierName: 'Blue Cross Blue Shield',
+    planName: 'PPO Plan',
+    policyId: 'BC123456789',
+    groupNumber: 'GRP001',
+    planType: 'PPO',
+    subscriberIsPatient: true,
+    subscriberFullName: '',
+    subscriberDOB: '',
+    subscriberRelationshipToPatient: '',
+    subscriberEmployerName: '',
+    guarantorIsSubscriber: true,
+    guarantorFullName: '',
+    guarantorRelationshipToPatient: '',
+    guarantorAddressLine1: '',
+    guarantorAddressLine2: '',
+    guarantorCity: '',
+    guarantorState: '',
+    guarantorZip: '',
+    guarantorPhoneNumber: '',
+    cardFrontImageUrl: null,
+    cardBackImageUrl: null,
+    wantsFinancialAssistance: false,
     insuranceCardImage: null,
     idDocumentType: '',
     idDocumentImage: null,
@@ -113,9 +152,29 @@ export default function CheckInPage() {
     city: '',
     state: '',
     zipCode: '',
-    insuranceProvider: '',
-    insuranceMemberId: '',
-    insuranceGroupId: '',
+    insuranceStatus: '',
+    insuranceCarrierName: '',
+    planName: '',
+    policyId: '',
+    groupNumber: '',
+    planType: '',
+    subscriberIsPatient: true,
+    subscriberFullName: '',
+    subscriberDOB: '',
+    subscriberRelationshipToPatient: '',
+    subscriberEmployerName: '',
+    guarantorIsSubscriber: true,
+    guarantorFullName: '',
+    guarantorRelationshipToPatient: '',
+    guarantorAddressLine1: '',
+    guarantorAddressLine2: '',
+    guarantorCity: '',
+    guarantorState: '',
+    guarantorZip: '',
+    guarantorPhoneNumber: '',
+    cardFrontImageUrl: null,
+    cardBackImageUrl: null,
+    wantsFinancialAssistance: false,
     insuranceCardImage: null,
     idDocumentType: '',
     idDocumentImage: null,
@@ -172,8 +231,13 @@ export default function CheckInPage() {
     )
   }
 
-  const canProceedToComplaint = () => {
+  const canProceedToInsurance = () => {
     return true // Registration fields are optional
+  }
+
+  const canProceedToComplaint = () => {
+    // Insurance step is optional - can proceed regardless
+    return true
   }
 
   const canProceedToSymptoms = () => {
@@ -194,7 +258,9 @@ export default function CheckInPage() {
     // Normal form navigation
     if (currentStep === 'demographics' && canProceedToRegistration()) {
       setCurrentStep('registration')
-    } else if (currentStep === 'registration' && canProceedToComplaint()) {
+    } else if (currentStep === 'registration' && canProceedToInsurance()) {
+      setCurrentStep('insurance')
+    } else if (currentStep === 'insurance' && canProceedToComplaint()) {
       setCurrentStep('complaint')
     } else if (currentStep === 'complaint' && canProceedToSymptoms()) {
       setCurrentStep('symptoms')
@@ -206,8 +272,10 @@ export default function CheckInPage() {
   const handleBack = () => {
     if (currentStep === 'registration') {
       setCurrentStep('demographics')
-    } else if (currentStep === 'complaint') {
+    } else if (currentStep === 'insurance') {
       setCurrentStep('registration')
+    } else if (currentStep === 'complaint') {
+      setCurrentStep('insurance')
     } else if (currentStep === 'symptoms') {
       setCurrentStep('complaint')
     } else if (currentStep === 'review') {
@@ -263,8 +331,30 @@ export default function CheckInPage() {
         symptomAnswers: Object.keys(formData.symptomAnswers).length > 0 ? formData.symptomAnswers : null,
         riskFactors: Object.keys(formData.riskFactors).length > 0 ? formData.riskFactors : null,
         intakeSource: isKioskMode ? IntakeSource.KIOSK : IntakeSource.MOBILE,
-        // Note: Insurance and ID data will be handled via separate file upload API endpoints
-        // For now, these fields are collected but not sent to prevent API errors
+          // Submit insurance information if provided
+          if (formData.insuranceStatus && formData.insuranceStatus !== '') {
+            try {
+              const insurancePayload: any = {
+                insuranceStatus: formData.insuranceStatus,
+                insuranceCarrierName: formData.insuranceCarrierName || null,
+                planName: formData.planName || null,
+                policyId: formData.policyId || null,
+                groupNumber: formData.groupNumber || null,
+                planType: formData.planType || null,
+                subscriberIsPatient: formData.subscriberIsPatient,
+                subscriberFullName: formData.subscriberIsPatient ? null : (formData.subscriberFullName || null),
+                subscriberDOB: formData.subscriberIsPatient ? null : (formData.subscriberDOB ? new Date(formData.subscriberDOB).toISOString() : null),
+                subscriberRelationshipToPatient: formData.subscriberIsPatient ? null : (formData.subscriberRelationshipToPatient || null),
+                subscriberEmployerName: formData.subscriberEmployerName || null,
+                guarantorIsSubscriber: formData.guarantorIsSubscriber,
+                guarantorFullName: formData.guarantorIsSubscriber ? null : (formData.guarantorFullName || null),
+                guarantorRelationshipToPatient: formData.guarantorIsSubscriber ? null : (formData.guarantorRelationshipToPatient || null),
+                guarantorAddressLine1: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine1 || null),
+                guarantorAddressLine2: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine2 || null),
+                guarantorCity: formData.guarantorIsSubscriber ? null : (formData.guarantorCity || null),
+                guarantorState: formData.guarantorIsSubscriber ? null : (formData.guarantorState || null),
+                guarantorZip: formData.guarantorIsSubscriber ? null : (formData.guarantorZip || null),
+                guarantorPhoneNumber: formData.guarantorIsSubscriber ? null : (formData.guarantorPhoneNumber || null),
       }
 
       // Validate required fields before submission
@@ -317,6 +407,54 @@ export default function CheckInPage() {
       }
 
       const result = await response.json()
+      const visitId = result.visitId || result.id || result.visit?.id
+
+      // Submit insurance information if provided (after visit is created)
+      if (visitId && formData.insuranceStatus && formData.insuranceStatus !== '') {
+        try {
+          const insurancePayload: any = {
+            insuranceStatus: formData.insuranceStatus,
+            insuranceCarrierName: formData.insuranceCarrierName || null,
+            planName: formData.planName || null,
+            policyId: formData.policyId || null,
+            groupNumber: formData.groupNumber || null,
+            planType: formData.planType || null,
+            subscriberIsPatient: formData.subscriberIsPatient,
+            subscriberFullName: formData.subscriberIsPatient ? null : (formData.subscriberFullName || null),
+            subscriberDOB: formData.subscriberIsPatient ? null : (formData.subscriberDOB ? new Date(formData.subscriberDOB).toISOString() : null),
+            subscriberRelationshipToPatient: formData.subscriberIsPatient ? null : (formData.subscriberRelationshipToPatient || null),
+            subscriberEmployerName: formData.subscriberEmployerName || null,
+            guarantorIsSubscriber: formData.guarantorIsSubscriber,
+            guarantorFullName: formData.guarantorIsSubscriber ? null : (formData.guarantorFullName || null),
+            guarantorRelationshipToPatient: formData.guarantorIsSubscriber ? null : (formData.guarantorRelationshipToPatient || null),
+            guarantorAddressLine1: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine1 || null),
+            guarantorAddressLine2: formData.guarantorIsSubscriber ? null : (formData.guarantorAddressLine2 || null),
+            guarantorCity: formData.guarantorIsSubscriber ? null : (formData.guarantorCity || null),
+            guarantorState: formData.guarantorIsSubscriber ? null : (formData.guarantorState || null),
+            guarantorZip: formData.guarantorIsSubscriber ? null : (formData.guarantorZip || null),
+            guarantorPhoneNumber: formData.guarantorIsSubscriber ? null : (formData.guarantorPhoneNumber || null),
+            cardFrontImageUrl: formData.cardFrontImageUrl || null,
+            cardBackImageUrl: formData.cardBackImageUrl || null,
+            wantsFinancialAssistance: formData.wantsFinancialAssistance || false,
+          }
+
+          const insuranceResponse = await fetch(`/api/visits/${visitId}/insurance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(insurancePayload),
+          })
+
+          if (!insuranceResponse.ok) {
+            const insuranceError = await insuranceResponse.json()
+            console.error('Insurance submission error:', insuranceError)
+            // Don't fail the entire submission if insurance fails
+          }
+        } catch (insuranceError) {
+          console.error('Error submitting insurance:', insuranceError)
+          // Don't fail the entire submission if insurance fails
+        }
+      }
+
       setSubmitSuccess(true)
 
       // If in tour, advance to next step, then redirect
@@ -328,7 +466,6 @@ export default function CheckInPage() {
       } else {
         // Normal redirect after 3 seconds
         setTimeout(() => {
-          const visitId = result.visitId || result.id || result.visit?.id
           const redirectUrl = visitId 
             ? `/check-in/success?visitId=${visitId}`
             : '/check-in/success'
@@ -581,90 +718,18 @@ export default function CheckInPage() {
           </div>
         )}
 
-        {/* Step 2: Registration (Insurance & ID) */}
+        {/* Step 2: Registration (ID Documents) */}
         {currentStep === 'registration' && (
           <div className={styles.stepContent}>
-            <h2>{language === 'es' ? 'Información de Registro' : 'Registration Information'}</h2>
+            <h2>{language === 'es' ? 'Identificación' : 'Identification'}</h2>
             <p className={styles.stepDescription}>
               {language === 'es'
-                ? 'Proporcione información de seguro e identificación (opcional)'
-                : 'Please provide insurance and identification information (optional)'}
+                ? 'Proporcione información de identificación (opcional)'
+                : 'Please provide identification information (optional)'}
             </p>
-
-            {/* Insurance Information */}
-            <div className={styles.formSection}>
-              <h3>{language === 'es' ? 'Información del Seguro' : 'Insurance Information'}</h3>
-              <div className={styles.formGroup}>
-                <label htmlFor="insuranceProvider">
-                  {language === 'es' ? 'Compañía de Seguro' : 'Insurance Provider'}
-                </label>
-                <input
-                  id="insuranceProvider"
-                  type="text"
-                  value={formData.insuranceProvider}
-                  onChange={(e) => updateFormData('insuranceProvider', e.target.value)}
-                  placeholder={language === 'es' ? 'Ej: Blue Cross Blue Shield' : 'e.g., Blue Cross Blue Shield'}
-                  className={`${isKioskMode ? styles.kioskInput : ''} ${
-                    accessibilityMode ? styles.accessibilityInput : ''
-                  }`}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="insuranceMemberId">
-                  {language === 'es' ? 'ID de Miembro' : 'Member ID'}
-                </label>
-                <input
-                  id="insuranceMemberId"
-                  type="text"
-                  value={formData.insuranceMemberId}
-                  onChange={(e) => updateFormData('insuranceMemberId', e.target.value)}
-                  className={`${isKioskMode ? styles.kioskInput : ''} ${
-                    accessibilityMode ? styles.accessibilityInput : ''
-                  }`}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="insuranceGroupId">
-                  {language === 'es' ? 'Número de Grupo' : 'Group Number'}
-                </label>
-                <input
-                  id="insuranceGroupId"
-                  type="text"
-                  value={formData.insuranceGroupId}
-                  onChange={(e) => updateFormData('insuranceGroupId', e.target.value)}
-                  className={`${isKioskMode ? styles.kioskInput : ''} ${
-                    accessibilityMode ? styles.accessibilityInput : ''
-                  }`}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="insuranceCardImage">
-                  {language === 'es' ? 'Foto de Tarjeta de Seguro' : 'Insurance Card Photo'}
-                </label>
-                <input
-                  id="insuranceCardImage"
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    handleFileUpload('insuranceCardImage', file)
-                  }}
-                  className={`${isKioskMode ? styles.kioskInput : ''} ${
-                    accessibilityMode ? styles.accessibilityInput : ''
-                  }`}
-                />
-                {formData.insuranceCardImage && (
-                  <div className={styles.filePreview}>
-                    {language === 'es' ? 'Archivo seleccionado:' : 'File selected:'} {formData.insuranceCardImage.name}
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* ID Document */}
             <div className={styles.formSection}>
-              <h3>{language === 'es' ? 'Identificación' : 'Identification'}</h3>
               <div className={styles.formGroup}>
                 <label htmlFor="idDocumentType">
                   {language === 'es' ? 'Tipo de Identificación' : 'ID Type'}
@@ -716,6 +781,474 @@ export default function CheckInPage() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Step 3: Insurance & Billing */}
+        {currentStep === 'insurance' && (
+          <div className={styles.stepContent}>
+            <h2>{language === 'es' ? 'Seguro y Facturación' : 'Insurance & Billing'}</h2>
+            <p className={styles.stepDescription}>
+              {language === 'es'
+                ? 'Proporcione información de seguro (opcional)'
+                : 'Please provide insurance information (optional)'}
+            </p>
+
+            {/* Primary Selection */}
+            <div className={styles.formSection}>
+              <h3>{language === 'es' ? '¿Tiene seguro médico?' : 'Do you have health insurance?'}</h3>
+              <div className={styles.insuranceOptions}>
+                <label className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="insuranceStatus"
+                    value="HAS_INSURANCE"
+                    checked={formData.insuranceStatus === 'HAS_INSURANCE'}
+                    onChange={(e) => updateFormData('insuranceStatus', e.target.value)}
+                  />
+                  <span>{language === 'es' ? 'Tengo seguro médico' : 'I have health insurance'}</span>
+                </label>
+                <label className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="insuranceStatus"
+                    value="SELF_PAY"
+                    checked={formData.insuranceStatus === 'SELF_PAY'}
+                    onChange={(e) => updateFormData('insuranceStatus', e.target.value)}
+                  />
+                  <span>{language === 'es' ? 'No tengo seguro / Pagaré yo mismo' : 'I don\'t have insurance / I will self-pay'}</span>
+                </label>
+                <label className={styles.radioOption}>
+                  <input
+                    type="radio"
+                    name="insuranceStatus"
+                    value="UNKNOWN"
+                    checked={formData.insuranceStatus === 'UNKNOWN'}
+                    onChange={(e) => updateFormData('insuranceStatus', e.target.value)}
+                  />
+                  <span>{language === 'es' ? 'No estoy seguro / No tengo mi tarjeta' : 'I\'m not sure / I don\'t have my card with me'}</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Insurance Form - Show if HAS_INSURANCE */}
+            {formData.insuranceStatus === 'HAS_INSURANCE' && (
+              <>
+                {/* Card Upload */}
+                <div className={styles.formSection}>
+                  <h3>{language === 'es' ? 'Foto de Tarjeta de Seguro' : 'Insurance Card Photo'}</h3>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="cardFrontImage">
+                      {language === 'es' ? 'Frente de la Tarjeta' : 'Front of Card'} *
+                    </label>
+                    <input
+                      id="cardFrontImage"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        if (file) {
+                          // In production, upload to storage and get URL
+                          // For now, store file reference
+                          const reader = new FileReader()
+                          reader.onloadend = () => {
+                            updateFormData('cardFrontImageUrl', reader.result as string)
+                          }
+                          reader.readAsDataURL(file)
+                        }
+                      }}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                    />
+                    {formData.cardFrontImageUrl && (
+                      <div className={styles.filePreview}>
+                        {language === 'es' ? 'Imagen cargada' : 'Image uploaded'}
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="cardBackImage">
+                      {language === 'es' ? 'Reverso de la Tarjeta' : 'Back of Card'} ({language === 'es' ? 'Opcional' : 'Optional'})
+                    </label>
+                    <input
+                      id="cardBackImage"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        if (file) {
+                          const reader = new FileReader()
+                          reader.onloadend = () => {
+                            updateFormData('cardBackImageUrl', reader.result as string)
+                          }
+                          reader.readAsDataURL(file)
+                        }
+                      }}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                    />
+                    {formData.cardBackImageUrl && (
+                      <div className={styles.filePreview}>
+                        {language === 'es' ? 'Imagen cargada' : 'Image uploaded'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Plan Details */}
+                <div className={styles.formSection}>
+                  <h3>{language === 'es' ? 'Detalles del Plan' : 'Plan Details'}</h3>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="insuranceCarrierName">
+                      {language === 'es' ? 'Compañía de Seguro' : 'Insurance Carrier'} *
+                    </label>
+                    <input
+                      id="insuranceCarrierName"
+                      type="text"
+                      value={formData.insuranceCarrierName}
+                      onChange={(e) => updateFormData('insuranceCarrierName', e.target.value)}
+                      placeholder={language === 'es' ? 'Ej: Blue Cross Blue Shield' : 'e.g., Blue Cross Blue Shield'}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                      required={formData.insuranceStatus === 'HAS_INSURANCE'}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="planName">
+                      {language === 'es' ? 'Nombre del Plan' : 'Plan Name'} ({language === 'es' ? 'Opcional' : 'Optional'})
+                    </label>
+                    <input
+                      id="planName"
+                      type="text"
+                      value={formData.planName}
+                      onChange={(e) => updateFormData('planName', e.target.value)}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="policyId">
+                      {language === 'es' ? 'ID de Miembro / Número de Póliza' : 'Member ID / Policy Number'} *
+                    </label>
+                    <input
+                      id="policyId"
+                      type="text"
+                      value={formData.policyId}
+                      onChange={(e) => updateFormData('policyId', e.target.value)}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                      required={formData.insuranceStatus === 'HAS_INSURANCE'}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="groupNumber">
+                      {language === 'es' ? 'Número de Grupo' : 'Group Number'} ({language === 'es' ? 'Recomendado' : 'Recommended'})
+                    </label>
+                    <input
+                      id="groupNumber"
+                      type="text"
+                      value={formData.groupNumber}
+                      onChange={(e) => updateFormData('groupNumber', e.target.value)}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="planType">
+                      {language === 'es' ? 'Tipo de Plan' : 'Plan Type'}
+                    </label>
+                    <select
+                      id="planType"
+                      value={formData.planType}
+                      onChange={(e) => updateFormData('planType', e.target.value)}
+                      className={`${isKioskMode ? styles.kioskInput : ''} ${
+                        accessibilityMode ? styles.accessibilityInput : ''
+                      }`}
+                    >
+                      <option value="">{language === 'es' ? 'Seleccionar' : 'Select'}</option>
+                      <option value="PPO">PPO</option>
+                      <option value="HMO">HMO</option>
+                      <option value="EPO">EPO</option>
+                      <option value="POS">POS</option>
+                      <option value="MEDICARE">{language === 'es' ? 'Medicare' : 'Medicare'}</option>
+                      <option value="MEDICAID">{language === 'es' ? 'Medicaid' : 'Medicaid'}</option>
+                      <option value="TRICARE">{language === 'es' ? 'Tricare' : 'Tricare'}</option>
+                      <option value="OTHER">{language === 'es' ? 'Otro' : 'Other'}</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Subscriber Information */}
+                <div className={styles.formSection}>
+                  <h3>{language === 'es' ? 'Información del Suscriptor' : 'Subscriber Information'}</h3>
+                  <div className={styles.formGroup}>
+                    <label className={styles.checkboxOption}>
+                      <input
+                        type="checkbox"
+                        checked={formData.subscriberIsPatient}
+                        onChange={(e) => {
+                          updateFormData('subscriberIsPatient', e.target.checked)
+                          if (e.target.checked) {
+                            updateFormData('subscriberFullName', `${formData.firstName} ${formData.lastName}`)
+                            updateFormData('subscriberDOB', formData.dob)
+                            updateFormData('subscriberRelationshipToPatient', 'SELF')
+                          }
+                        }}
+                      />
+                      <span>{language === 'es' ? 'Yo soy la persona cuyo nombre está en la tarjeta' : 'I am the person whose name is on the card'}</span>
+                    </label>
+                  </div>
+
+                  {!formData.subscriberIsPatient && (
+                    <>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="subscriberFullName">
+                          {language === 'es' ? 'Nombre Completo del Suscriptor' : 'Subscriber Full Name'} *
+                        </label>
+                        <input
+                          id="subscriberFullName"
+                          type="text"
+                          value={formData.subscriberFullName}
+                          onChange={(e) => updateFormData('subscriberFullName', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.subscriberIsPatient}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="subscriberDOB">
+                          {language === 'es' ? 'Fecha de Nacimiento del Suscriptor' : 'Subscriber Date of Birth'} *
+                        </label>
+                        <input
+                          id="subscriberDOB"
+                          type="date"
+                          value={formData.subscriberDOB}
+                          onChange={(e) => updateFormData('subscriberDOB', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.subscriberIsPatient}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="subscriberRelationshipToPatient">
+                          {language === 'es' ? 'Relación con el Paciente' : 'Relationship to Patient'} *
+                        </label>
+                        <select
+                          id="subscriberRelationshipToPatient"
+                          value={formData.subscriberRelationshipToPatient}
+                          onChange={(e) => updateFormData('subscriberRelationshipToPatient', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.subscriberIsPatient}
+                        >
+                          <option value="">{language === 'es' ? 'Seleccionar' : 'Select'}</option>
+                          <option value="PARENT">{language === 'es' ? 'Padre/Madre' : 'Parent'}</option>
+                          <option value="SPOUSE">{language === 'es' ? 'Cónyuge' : 'Spouse'}</option>
+                          <option value="CHILD">{language === 'es' ? 'Hijo/Hija' : 'Child'}</option>
+                          <option value="OTHER">{language === 'es' ? 'Otro' : 'Other'}</option>
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="subscriberEmployerName">
+                          {language === 'es' ? 'Empleador del Suscriptor' : 'Subscriber Employer'} ({language === 'es' ? 'Opcional' : 'Optional'})
+                        </label>
+                        <input
+                          id="subscriberEmployerName"
+                          type="text"
+                          value={formData.subscriberEmployerName}
+                          onChange={(e) => updateFormData('subscriberEmployerName', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Guarantor Information */}
+                <div className={styles.formSection}>
+                  <h3>{language === 'es' ? 'Garante' : 'Guarantor'}</h3>
+                  <div className={styles.formGroup}>
+                    <label className={styles.checkboxOption}>
+                      <input
+                        type="checkbox"
+                        checked={formData.guarantorIsSubscriber}
+                        onChange={(e) => updateFormData('guarantorIsSubscriber', e.target.checked)}
+                      />
+                      <span>{language === 'es' ? 'La persona en la tarjeta es financieramente responsable (garante)' : 'The person on the card is financially responsible (guarantor)'}</span>
+                    </label>
+                  </div>
+
+                  {!formData.guarantorIsSubscriber && (
+                    <>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="guarantorFullName">
+                          {language === 'es' ? 'Nombre Completo del Garante' : 'Guarantor Full Name'} *
+                        </label>
+                        <input
+                          id="guarantorFullName"
+                          type="text"
+                          value={formData.guarantorFullName}
+                          onChange={(e) => updateFormData('guarantorFullName', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.guarantorIsSubscriber}
+                        />
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="guarantorRelationshipToPatient">
+                          {language === 'es' ? 'Relación con el Paciente' : 'Relationship to Patient'} *
+                        </label>
+                        <select
+                          id="guarantorRelationshipToPatient"
+                          value={formData.guarantorRelationshipToPatient}
+                          onChange={(e) => updateFormData('guarantorRelationshipToPatient', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.guarantorIsSubscriber}
+                        >
+                          <option value="">{language === 'es' ? 'Seleccionar' : 'Select'}</option>
+                          <option value="SELF">{language === 'es' ? 'Yo mismo' : 'Self'}</option>
+                          <option value="PARENT">{language === 'es' ? 'Padre/Madre' : 'Parent'}</option>
+                          <option value="SPOUSE">{language === 'es' ? 'Cónyuge' : 'Spouse'}</option>
+                          <option value="CHILD">{language === 'es' ? 'Hijo/Hija' : 'Child'}</option>
+                          <option value="OTHER">{language === 'es' ? 'Otro' : 'Other'}</option>
+                        </select>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="guarantorAddressLine1">
+                          {language === 'es' ? 'Dirección del Garante' : 'Guarantor Address'} *
+                        </label>
+                        <input
+                          id="guarantorAddressLine1"
+                          type="text"
+                          value={formData.guarantorAddressLine1}
+                          onChange={(e) => updateFormData('guarantorAddressLine1', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.guarantorIsSubscriber}
+                        />
+                      </div>
+                      <div className={styles.formRow}>
+                        <div className={styles.formGroup}>
+                          <label htmlFor="guarantorCity">
+                            {language === 'es' ? 'Ciudad' : 'City'} *
+                          </label>
+                          <input
+                            id="guarantorCity"
+                            type="text"
+                            value={formData.guarantorCity}
+                            onChange={(e) => updateFormData('guarantorCity', e.target.value)}
+                            className={`${isKioskMode ? styles.kioskInput : ''} ${
+                              accessibilityMode ? styles.accessibilityInput : ''
+                            }`}
+                            required={!formData.guarantorIsSubscriber}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label htmlFor="guarantorState">
+                            {language === 'es' ? 'Estado' : 'State'} *
+                          </label>
+                          <input
+                            id="guarantorState"
+                            type="text"
+                            value={formData.guarantorState}
+                            onChange={(e) => updateFormData('guarantorState', e.target.value)}
+                            className={`${isKioskMode ? styles.kioskInput : ''} ${
+                              accessibilityMode ? styles.accessibilityInput : ''
+                            }`}
+                            required={!formData.guarantorIsSubscriber}
+                          />
+                        </div>
+                        <div className={styles.formGroup}>
+                          <label htmlFor="guarantorZip">
+                            {language === 'es' ? 'Código Postal' : 'Zip Code'} *
+                          </label>
+                          <input
+                            id="guarantorZip"
+                            type="text"
+                            value={formData.guarantorZip}
+                            onChange={(e) => updateFormData('guarantorZip', e.target.value)}
+                            className={`${isKioskMode ? styles.kioskInput : ''} ${
+                              accessibilityMode ? styles.accessibilityInput : ''
+                            }`}
+                            required={!formData.guarantorIsSubscriber}
+                          />
+                        </div>
+                      </div>
+                      <div className={styles.formGroup}>
+                        <label htmlFor="guarantorPhoneNumber">
+                          {language === 'es' ? 'Teléfono del Garante' : 'Guarantor Phone'} *
+                        </label>
+                        <input
+                          id="guarantorPhoneNumber"
+                          type="tel"
+                          value={formData.guarantorPhoneNumber}
+                          onChange={(e) => updateFormData('guarantorPhoneNumber', e.target.value)}
+                          className={`${isKioskMode ? styles.kioskInput : ''} ${
+                            accessibilityMode ? styles.accessibilityInput : ''
+                          }`}
+                          required={!formData.guarantorIsSubscriber}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Self-Pay Message */}
+            {formData.insuranceStatus === 'SELF_PAY' && (
+              <div className={styles.formSection}>
+                <div className={styles.infoMessage}>
+                  <p>
+                    {language === 'es'
+                      ? 'Aún puede ser tratado. Un representante de facturación puede contactarlo más tarde para discutir opciones de pago.'
+                      : 'You can still be treated. A billing representative may contact you later to discuss payment options.'}
+                  </p>
+                  <label className={styles.checkboxOption}>
+                    <input
+                      type="checkbox"
+                      checked={formData.wantsFinancialAssistance}
+                      onChange={(e) => updateFormData('wantsFinancialAssistance', e.target.checked)}
+                    />
+                    <span>
+                      {language === 'es'
+                        ? '¿Le gustaría que verifiquemos si califica para asistencia financiera?'
+                        : 'Would you like us to check if you qualify for financial assistance?'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Unknown/Not Sure Message */}
+            {formData.insuranceStatus === 'UNKNOWN' && (
+              <div className={styles.formSection}>
+                <div className={styles.infoMessage}>
+                  <p>
+                    {language === 'es'
+                      ? 'El personal de registro lo ayudará cuando llegue. Es posible que se le solicite proporcionar su tarjeta o más información.'
+                      : 'Registration staff will help you when you arrive. You may be asked to provide your card or more information.'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
