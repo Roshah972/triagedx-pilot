@@ -63,31 +63,13 @@ export default function Home() {
                   router.push('/staff/dashboard')
                   setTimeout(() => startTour(), 500)
                 }}
+                className={styles.primaryButton}
                 style={{
-                  padding: '20px 48px',
-                  background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '16px',
-                  fontSize: '24px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 30px rgba(88, 51, 255, 0.5)',
-                  transition: 'all 0.3s',
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)'
-                  e.currentTarget.style.boxShadow = '0 12px 40px rgba(88, 51, 255, 0.6)'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0) scale(1)'
-                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(88, 51, 255, 0.5)'
+                  fontSize: '1.125rem',
+                  padding: '1rem 2.5rem',
                 }}
               >
-                🎯 START DEMO TOUR
+                START DEMO
               </button>
             </div>
           )}

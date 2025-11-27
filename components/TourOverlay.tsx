@@ -213,13 +213,13 @@ export default function TourOverlay({ stepId, config, isActive }: TourOverlayPro
         <h3 className={styles.tooltipTitle}>{config.title}</h3>
         <p className={styles.tooltipBody}>{config.body}</p>
         <div className={styles.tooltipActions}>
-          {currentStep !== 'intro' && currentStep !== 'wrap-up' && (
+          {currentStep !== 'intro' && (
             <button className={styles.skipButton} onClick={handleSkip}>
               Skip Demo
             </button>
           )}
           <button className={styles.nextButton} onClick={handleNext}>
-            {currentStep === 'wrap-up' ? 'Close' : 'Next'}
+            {currentStep === 'nurse-console-view' ? 'Close' : 'Next'}
           </button>
         </div>
       </div>

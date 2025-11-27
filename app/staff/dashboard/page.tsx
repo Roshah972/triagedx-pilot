@@ -317,7 +317,7 @@ export default function StaffDashboard() {
 
   return (
     <div className={styles.dashboard}>
-      <header className={styles.header} data-tour-id="nurse-console">
+      <header className={styles.header} data-tour-id="nurse-console-view">
         <Logo size="medium" className={styles.headerLogo} />
         <div className={styles.headerContent}>
           <h1>Staff Dashboard - Waiting Room</h1>
@@ -338,16 +338,26 @@ export default function StaffDashboard() {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '12px', alignItems: 'center' }}>
             <button
               onClick={() => router.push('/check-in')}
-              data-tour-id="checkin-entry"
               style={{
-                padding: '10px 20px',
+                padding: '0.875rem 2rem',
                 background: 'transparent',
                 color: 'var(--color-primary)',
-                border: '2px solid var(--color-primary)',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '600',
+                border: '1px solid var(--color-gray-300)',
+                borderRadius: 'var(--radius-xl)',
+                fontSize: '1rem',
+                fontWeight: '500',
                 cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-gray-400)'
+                e.currentTarget.style.background = 'var(--color-gray-50)'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-gray-300)'
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.transform = 'translateY(0)'
               }}
             >
               New Check-In
@@ -355,29 +365,30 @@ export default function StaffDashboard() {
             <button
               onClick={startTour}
               style={{
-                padding: '16px 32px',
+                padding: '0.875rem 2rem',
                 background: 'var(--color-primary)',
-                color: 'white',
+                color: 'var(--color-white)',
                 border: 'none',
-                borderRadius: '12px',
-                fontSize: '18px',
-                fontWeight: '700',
+                borderRadius: 'var(--radius-xl)',
+                fontSize: '1rem',
+                fontWeight: '500',
                 cursor: 'pointer',
-                boxShadow: '0 4px 20px rgba(88, 51, 255, 0.4)',
-                transition: 'all 0.3s',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 2px 8px rgba(88, 51, 255, 0.2)',
+                minWidth: '160px',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = '0 6px 25px rgba(88, 51, 255, 0.5)'
+                e.currentTarget.style.background = 'var(--color-secondary)'
+                e.currentTarget.style.transform = 'translateY(-1px)'
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(88, 51, 255, 0.3)'
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--color-primary)'
                 e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 4px 20px rgba(88, 51, 255, 0.4)'
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(88, 51, 255, 0.2)'
               }}
             >
-              🎯 START DEMO
+              START DEMO
             </button>
           </div>
         )}

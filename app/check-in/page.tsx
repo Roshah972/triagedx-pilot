@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { IntakeSource, Sex } from '@prisma/client'
 import { useTour } from '@/contexts/DemoTourContext'
 import { getSymptomQuestions, getComplaintCategories } from '@/lib/config/symptomQuestions'
@@ -49,7 +49,8 @@ type Step = 'demographics' | 'complaint' | 'symptoms' | 'review'
 export default function CheckInPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { currentStep: tourStep, goToStep, nextStep: tourNextStep } = useTour()
+  const pathname = usePathname()
+  const { currentStep: tourStep, goToStep, nextStep: tourNextStep, isActive: tourActive } = useTour()
   const isKioskMode = searchParams.get('mode') === 'kiosk'
 
   const [currentStep, setCurrentStep] = useState<Step>('demographics')
@@ -60,6 +61,30 @@ export default function CheckInPage() {
   const [accessibilityMode, setAccessibilityMode] = useState(false)
 
   const t = getTranslations(language)
+
+  const getDemoFormData = (): FormData => ({
+    firstName: 'John',
+    lastName: 'Smith',
+    dob: '1985-05-15',
+    sex: Sex.MALE,
+    phone: '555-123-4567',
+    email: 'john.smith@example.com',
+    addressLine1: '123 Main Street',
+    city: 'Springfield',
+    state: 'IL',
+    zipCode: '62701',
+    chiefComplaintCategory: 'CHEST_PAIN',
+    chiefComplaintText: 'Chest pain started 30 minutes ago',
+    symptomAnswers: {
+      'chest_pain_severity': 'moderate',
+      'chest_pain_radiates': true,
+      'shortness_of_breath': true,
+    },
+    riskFactors: {
+      'hypertension': true,
+      'diabetes': false,
+    },
+  })
 
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -77,6 +102,14 @@ export default function CheckInPage() {
     symptomAnswers: {},
     riskFactors: {},
   })
+  
+  // Pre-fill form when tour starts on check-in page
+  useEffect(() => {
+    if (tourActive && tourStep === 'form-intro' && pathname === '/check-in') {
+      setFormData(getDemoFormData())
+      setCurrentStep('demographics')
+    }
+  }, [tourActive, tourStep, pathname])
 
   const complaintCategories = getComplaintCategories()
   const symptomQuestions = formData.chiefComplaintCategory
@@ -126,6 +159,13 @@ export default function CheckInPage() {
   }
 
   const handleNext = () => {
+    // If in tour, advance tour step instead of form step
+    if (tourActive && tourStep) {
+      tourNextStep()
+      return
+    }
+    
+    // Normal form navigation
     if (currentStep === 'demographics' && canProceedToComplaint()) {
       setCurrentStep('complaint')
     } else if (currentStep === 'complaint' && canProceedToSymptoms()) {
@@ -145,15 +185,21 @@ export default function CheckInPage() {
     }
   }
 
-  // Handle tour navigation
+  // Handle tour navigation - auto-advance form steps when tour progresses
   useEffect(() => {
-    if (tourStep === 'checkin-entry' && router) {
-      // If we're on checkin-entry step, navigate to check-in page
-      if (window.location.pathname !== '/check-in') {
-        router.push('/check-in')
-      }
+    if (!tourActive || !tourStep) return
+
+    // When tour step changes, advance form to matching step
+    if (tourStep === 'form-demographics' && currentStep !== 'demographics') {
+      setCurrentStep('demographics')
+    } else if (tourStep === 'form-complaint' && currentStep !== 'complaint') {
+      setCurrentStep('complaint')
+    } else if (tourStep === 'form-symptoms' && currentStep !== 'symptoms') {
+      setCurrentStep('symptoms')
+    } else if (tourStep === 'form-submit' && currentStep !== 'review') {
+      setCurrentStep('review')
     }
-  }, [tourStep, router])
+  }, [tourStep, tourActive, currentStep])
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
@@ -218,14 +264,10 @@ export default function CheckInPage() {
       setSubmitSuccess(true)
 
       // If in tour, advance to next step, then redirect
-      if (tourStep === 'checkin-submit') {
+      if (tourStep === 'form-submit') {
         setTimeout(() => {
           tourNextStep()
-          // Navigate to dashboard after tour step advances
-          setTimeout(() => {
-            const visitId = result.visitId || result.id || result.visit?.id
-            router.push('/staff/dashboard')
-          }, 500)
+          // Stay on page to show nurse console prompt
         }, 1000)
       } else {
         // Normal redirect after 3 seconds
@@ -331,11 +373,11 @@ export default function CheckInPage() {
         </div>
 
         <Logo size="medium" className={styles.checkInLogo} />
-        <h1 className={styles.pageTitle} data-tour-id="checkin-overview">{t.pageTitle}</h1>
+        <h1 className={styles.pageTitle} data-tour-id="form-intro">{t.pageTitle}</h1>
 
         {/* Step 1: Demographics */}
         {currentStep === 'demographics' && (
-          <div className={styles.stepContent} data-tour-id="checkin-demographics">
+          <div className={styles.stepContent} data-tour-id="form-demographics">
             <h2>{t.yourInformation}</h2>
             <div className={styles.formGroup}>
               <label htmlFor="firstName">
@@ -481,7 +523,7 @@ export default function CheckInPage() {
 
         {/* Step 2: Chief Complaint */}
         {currentStep === 'complaint' && (
-          <div className={styles.stepContent} data-tour-id="checkin-complaint">
+          <div className={styles.stepContent} data-tour-id="form-complaint">
             <h2>{t.whatBringsYouIn}</h2>
             <p className={styles.stepDescription}>
               {language === 'es'
@@ -509,7 +551,7 @@ export default function CheckInPage() {
 
         {/* Step 3: Symptom Questions - Dynamic Chip/Slide System */}
         {currentStep === 'symptoms' && (
-          <div className={styles.stepContent} data-tour-id="checkin-vitals">
+          <div className={styles.stepContent} data-tour-id="form-symptoms">
             <h2>{t.additionalQuestions}</h2>
             <p className={styles.stepDescription}>{t.answerQuestions}</p>
 
@@ -673,14 +715,14 @@ export default function CheckInPage() {
               onClick={async () => {
                 await handleSubmit()
                 // Auto-advance tour after successful submit
-                if (tourStep === 'checkin-submit') {
+                if (tourStep === 'form-submit') {
                   setTimeout(() => {
                     tourNextStep()
                   }, 1000)
                 }
               }}
               disabled={isSubmitting}
-              data-tour-id="checkin-submit"
+              data-tour-id="form-submit"
               className={`${styles.navButton} ${styles.submitButton} ${
                 isKioskMode ? styles.kioskButton : ''
               } ${accessibilityMode ? styles.accessibilityButton : ''}`}

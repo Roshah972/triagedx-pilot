@@ -13,68 +13,52 @@ const tourSteps: Record<string, {
   allowInteraction?: boolean
 }> = {
   intro: {
-    title: 'Welcome to the TRIAGEDX Nurse Pilot Demo',
-    body: 'This is a guided walkthrough using fake patients. It\'s designed to show you how TRIAGEDX can streamline ED registration and give you a quick snapshot of patient risk. Please follow the highlighted steps.',
+    title: 'Welcome to TRIAGEDX Demo',
+    body: 'This demo has two parts: (1) Patient Intake Form - where patients check in, and (2) Nurse Console - where you see all patients. We\'ll walk through a simulated patient check-in with pre-filled data. Just click Next to proceed through each section.',
     placement: 'center',
   },
-  'nurse-console': {
-    title: 'Nurse Console',
-    body: 'Here you can see all patients who have checked in through TRIAGEDX. This view summarizes chief complaints, risk scores, and queue position.',
+  'form-intro': {
+    title: 'Patient Intake Form',
+    body: 'This is the patient check-in form. The form is already filled with sample patient data. We\'ll walk through each section to show you what information is collected.',
     placement: 'bottom',
   },
-  'checkin-entry': {
-    title: 'Check-In Form',
-    body: 'This is where a walk-in patient (or staff on their behalf) completes the intake form. Let\'s walk through a sample check-in.',
-    placement: 'bottom',
-  },
-  'checkin-overview': {
-    title: 'Patient Check-In',
-    body: 'This form collects basic demographics, chief complaint, symptom details, and vitals. For this demo, please fill in the sample values shown or use your own fake patient. You don\'t need to think about "perfect" answers—this is just to see workflow.',
-    placement: 'bottom',
-    allowInteraction: true,
-  },
-  'checkin-demographics': {
-    title: 'Demographics',
-    body: 'Start with basic patient information: name, date of birth, and contact details. This data helps create the patient record.',
+  'form-demographics': {
+    title: 'Demographics Section',
+    body: 'This section collects basic patient information: name, date of birth, sex, and contact details. Notice the form is already filled with sample data.',
     placement: 'right',
     allowInteraction: true,
   },
-  'checkin-complaint': {
-    title: 'Chief Complaint & Symptoms',
-    body: 'The chief complaint and symptom questions help TRIAGEDX calculate a provisional Early Warning Score. This gives you a quick risk assessment before you perform clinical triage.',
+  'form-complaint': {
+    title: 'Chief Complaint',
+    body: 'Here patients select their main reason for visiting. This helps TRIAGEDX understand the urgency and route to appropriate care.',
     placement: 'right',
     allowInteraction: true,
   },
-  'checkin-vitals': {
-    title: 'Vitals & Risk Indicators',
-    body: 'Basic vitals and risk factors are collected here. The provisional EWS (Early Warning Score) appears automatically based on the information provided.',
+  'form-symptoms': {
+    title: 'Symptoms & Risk Factors',
+    body: 'This section asks targeted questions based on the chief complaint. The answers help calculate a provisional Early Warning Score.',
     placement: 'right',
     allowInteraction: true,
   },
-  'checkin-submit': {
-    title: 'Submit Demo Patient',
-    body: 'When you\'re done, hit Submit. TRIAGEDX will create a patient in the Nurse Console with a provisional risk signal.',
+  'form-submit': {
+    title: 'Submit Patient',
+    body: 'Once all information is collected, click Submit to create the patient record. The patient will then appear in your Nurse Console.',
     placement: 'top',
   },
-  'back-to-console': {
-    title: 'Back to Nurse Console',
-    body: 'Click here to return to the Nurse Console and see your newly created patient.',
+  'nurse-console-prompt': {
+    title: 'Go to Nurse Console',
+    body: 'After submitting, click the highlighted "Nurse Console" button to see the patient you just created. This is where you\'ll see all patients waiting for triage.',
     placement: 'bottom',
   },
-  'new-patient-highlight': {
-    title: 'Patient at a Glance',
-    body: 'Here you can quickly see key details: name, chief complaint, arrival time, and a provisional Early Warning Score to help you prioritize. Note: This is a demo—in real use, the EWS helps identify patients who may need immediate attention.',
-    placement: 'right',
-  },
-  'wrap-up': {
-    title: 'You\'ve completed the TRIAGEDX demo',
-    body: 'The real goal is to reduce double-documentation and give you a clearer, faster view of who needs attention first. Please share what felt helpful, confusing, or missing.',
-    placement: 'center',
+  'nurse-console-view': {
+    title: 'Nurse Console',
+    body: 'Here you can see all patients who have checked in. Each card shows key information including the provisional Early Warning Score to help you prioritize. This completes the demo!',
+    placement: 'bottom',
   },
 }
 
 export default function DemoTour() {
-  const { isActive, currentStep, nextStep, endTour, goToStep } = useTour()
+  const { isActive, currentStep, nextStep, endTour } = useTour()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -83,44 +67,17 @@ export default function DemoTour() {
     if (!isActive || !currentStep) return
 
     // Navigate to appropriate page for each step
-    if (currentStep === 'checkin-entry' && pathname !== '/check-in') {
+    if (currentStep === 'form-intro' && pathname !== '/check-in') {
       router.push('/check-in')
-    } else if (currentStep === 'nurse-console' && pathname !== '/staff/dashboard') {
-      router.push('/staff/dashboard')
-    } else if (currentStep === 'back-to-console' && pathname !== '/staff/dashboard') {
+    } else if (currentStep === 'nurse-console-view' && pathname !== '/staff/dashboard') {
       router.push('/staff/dashboard')
     }
   }, [currentStep, isActive, pathname, router])
 
-  // Auto-advance certain steps after delay
-  useEffect(() => {
-    if (!isActive || !currentStep) return
-
-    let timeoutId: NodeJS.Timeout
-
-    // Auto-advance intro after showing it (user can still click)
-    if (currentStep === 'intro') {
-      // Don't auto-advance intro - wait for user click
-      return
-    }
-
-    // Auto-advance informational steps after 5 seconds
-    const autoAdvanceSteps: TourStep[] = ['nurse-console', 'checkin-overview']
-    if (autoAdvanceSteps.includes(currentStep)) {
-      timeoutId = setTimeout(() => {
-        nextStep()
-      }, 5000) // 5 seconds
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [currentStep, isActive, nextStep])
-
   if (!isActive || !currentStep) return null
 
-  // Handle intro and wrap-up as full-screen overlays
-  if (currentStep === 'intro' || currentStep === 'wrap-up') {
+  // Handle intro as full-screen overlay
+  if (currentStep === 'intro') {
     const config = tourSteps[currentStep]
     return (
       <div className={styles.introOverlay}>
@@ -128,34 +85,18 @@ export default function DemoTour() {
           <h2 className={styles.introTitle}>{config.title}</h2>
           <p className={styles.introBody}>{config.body}</p>
           <div className={styles.introActions}>
-            {currentStep === 'intro' && (
-              <button
-                className={`${styles.introButton} ${styles.introButtonSecondary}`}
-                onClick={endTour}
-              >
-                Skip Demo
-              </button>
-            )}
+            <button
+              className={`${styles.introButton} ${styles.introButtonSecondary}`}
+              onClick={endTour}
+            >
+              Skip Demo
+            </button>
             <button
               className={`${styles.introButton} ${styles.introButtonPrimary}`}
-              onClick={currentStep === 'wrap-up' ? endTour : nextStep}
+              onClick={nextStep}
             >
-              {currentStep === 'wrap-up' ? 'Close' : 'Start Walkthrough'}
+              Start Walkthrough
             </button>
-            {currentStep === 'wrap-up' && (
-              <button
-                className={`${styles.introButton} ${styles.introButtonSecondary}`}
-                onClick={() => {
-                  endTour()
-                  // Use a small delay to ensure state is reset
-                  setTimeout(() => {
-                    window.location.href = '/staff/dashboard?demo=1'
-                  }, 200)
-                }}
-              >
-                Replay Demo
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -178,4 +119,3 @@ export default function DemoTour() {
     />
   )
 }
-

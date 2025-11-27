@@ -103,10 +103,13 @@
 
 /* Animated arrow pointing to element */
 .tooltip::after {
-  content: '👉';
+  content: '→';
   position: absolute;
-  font-size: 24px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-primary);
   animation: pointArrow 1.5s ease-in-out infinite;
+  line-height: 1;
 }
 
 .tooltip.arrow-top::after {

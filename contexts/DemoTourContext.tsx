@@ -5,16 +5,13 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 
 export type TourStep = 
   | 'intro'
-  | 'nurse-console'
-  | 'checkin-entry'
-  | 'checkin-overview'
-  | 'checkin-demographics'
-  | 'checkin-complaint'
-  | 'checkin-vitals'
-  | 'checkin-submit'
-  | 'back-to-console'
-  | 'new-patient-highlight'
-  | 'wrap-up'
+  | 'form-intro'
+  | 'form-demographics'
+  | 'form-complaint'
+  | 'form-symptoms'
+  | 'form-submit'
+  | 'nurse-console-prompt'
+  | 'nurse-console-view'
 
 interface TourContextType {
   isActive: boolean
@@ -41,7 +38,7 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
       ? localStorage.getItem('triagedx_demo_seen') === 'true'
       : false
 
-    if (demoParam === '1' || (!hasSeenDemo && demoParam === '1')) {
+    if (demoParam === '1') {
       // Small delay to ensure page is loaded
       setTimeout(() => {
         startTour()
@@ -63,16 +60,13 @@ export function DemoTourProvider({ children }: { children: React.ReactNode }) {
 
     const stepOrder: TourStep[] = [
       'intro',
-      'nurse-console',
-      'checkin-entry',
-      'checkin-overview',
-      'checkin-demographics',
-      'checkin-complaint',
-      'checkin-vitals',
-      'checkin-submit',
-      'back-to-console',
-      'new-patient-highlight',
-      'wrap-up',
+      'form-intro',
+      'form-demographics',
+      'form-complaint',
+      'form-symptoms',
+      'form-submit',
+      'nurse-console-prompt',
+      'nurse-console-view',
     ]
 
     const currentIndex = stepOrder.indexOf(currentStep)
@@ -129,4 +123,3 @@ export function useTour() {
   }
   return context
 }
-
